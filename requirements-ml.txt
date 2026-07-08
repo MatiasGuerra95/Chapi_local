@@ -1,0 +1,5 @@
+# Fase 2: LLM local (resúmenes) + búsqueda semántica.
+# Se instala aparte para mantener liviana la imagen del MVP.
+llama-cpp-python==0.2.*
+sentence-transformers==2.7.*
+pgvector==0.2.*
