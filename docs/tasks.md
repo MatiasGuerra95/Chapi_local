@@ -92,7 +92,7 @@
 ## M9 · Entrega
 - [x] **T-90** Rama `feat/mvp-due-diligence-compliance` + commit del MVP.
 - [x] **T-91** Push + PR [#1](https://github.com/MatiasGuerra95/Chapi_local/pull/1).
-- [ ] **T-92** CI en verde sobre el PR.
+- [x] **T-92** CI en verde sobre el PR (build **pass**: ruff + import + unit/integración con servicio Postgres).
 - [x] **T-93** Incluir la documentación (`requirements`/`plan`/`tasks`/`STATUS`) y `CLAUDE.md` en el PR (commit `6b7d63b`).
 - [ ] **T-94** Revisión de código y **merge** a `main`.
 

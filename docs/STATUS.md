@@ -10,12 +10,12 @@ Núcleo del MVP **implementado** (API + worker + servicios + infra + tests unita
 Falta cerrar el MVP: versionar la documentación, verificación end-to-end con Docker, tests de integración y merge.
 
 ## Ahora / próximo
-- **Siguiente:** `T-92` CI verde en el PR (ahora corre unit+integración con Postgres) → `T-94` revisión + merge del PR #1.
+- **Siguiente:** `T-94` revisión + **merge** del PR #1 (pendiente de tu OK).
 
 ## Progreso (detalle en tasks.md)
 - Código MVP (M1–M7): ✅ hecho
 - Pruebas (M8): 🟢 unit + integración (pytest+Postgres) ✅ · E2E app-level ✅ · smoke full-stack docker ✅ (16 tests)
-- Entrega (M9): 🟡 PR #1 abierto · falta CI verde + merge
+- Entrega (M9): 🟡 PR #1 con **CI verde** · falta merge (T-94)
 - Compliance operativo (M10): ⬜ pendiente
 - Fase 2: ⬜ no iniciada
 
@@ -23,9 +23,9 @@ Falta cerrar el MVP: versionar la documentación, verificación end-to-end con D
 - ⚠️ `T-23` colisión del JSON por persona · `T-100` revisión legal ToS PJUD · `T-101` retención de datos.
 
 ## Últimas tareas completadas
+- `T-92` CI del PR en verde (ruff + import + unit/integración con Postgres)
 - `T-83/T-84/T-87` tests pytest de integración (API+worker+Postgres) e informe; CI con servicio Postgres
 - `T-88` smoke full-stack docker (CA-06) ✅ — corrigió carrera `create_all` (db.py) y Dockerfile trixie; Chromium opt-in (T-73)
-- `T-85` E2E app-level contra Postgres local: CA-01/02/03/04/05 + RC-03/RC-04 ✅
 
 ---
 _Mantenimiento: al completar una tarea → (1) marcar su checkbox en `tasks.md`,
