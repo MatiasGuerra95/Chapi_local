@@ -94,7 +94,7 @@
 - [x] **T-91** Push + PR [#1](https://github.com/MatiasGuerra95/Chapi_local/pull/1).
 - [x] **T-92** CI en verde sobre el PR (build **pass**: ruff + import + unit/integración con servicio Postgres).
 - [x] **T-93** Incluir la documentación (`requirements`/`plan`/`tasks`/`STATUS`) y `CLAUDE.md` en el PR (commit `6b7d63b`).
-- [ ] **T-94** Revisión de código y **merge** a `main`.
+- [x] **T-94** Merge a `main` (squash, commit `de7cb59`); rama `feat/...` eliminada (local y remota).
 
 ## M10 · Compliance operativo y endurecimiento (transversal)
 - [ ] **T-100** Revisión legal: base de licitud del tratamiento y **Términos de Uso** de la OJV/PJUD para scraping automatizado (RC-05). ⚠️
