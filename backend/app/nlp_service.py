@@ -1,5 +1,7 @@
 from llama_cpp import Llama
-import re, os, functools
+import functools
+import os
+import re
 
 MODEL_PATH = os.getenv("LLAMA_MODEL", "./models/llama4-scout-q4_0.gguf")
 llm = functools.lru_cache(maxsize=1)(lambda: Llama(model_path=MODEL_PATH, n_ctx=4096))()

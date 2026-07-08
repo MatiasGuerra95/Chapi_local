@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Informe de Due Diligence — {{ subject.nombre }} {{ subject.ape_paterno }}</title>
+  <style>
+    :root { --fg:#1c2530; --muted:#5b6673; --line:#dde3ea; --bg:#f6f8fa;
+            --alto:#b3261e; --medio:#a15c00; --bajo:#1e7a46; --warn:#8a5a00; --warnbg:#fff4d6; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+           color: var(--fg); margin: 0; padding: 2rem; background: #fff; line-height: 1.5; }
+    .wrap { max-width: 960px; margin: 0 auto; }
+    h1 { font-size: 1.5rem; margin: 0 0 .25rem; }
+    h2 { font-size: 1.1rem; margin: 2rem 0 .75rem; border-bottom: 2px solid var(--line); padding-bottom: .35rem; }
+    .muted { color: var(--muted); }
+    .disclaimer { background: var(--warnbg); border: 1px solid #f0d488; color: var(--warn);
+                  border-radius: 8px; padding: 1rem 1.25rem; margin: 1.25rem 0; }
+    .disclaimer strong { color: #6b4600; }
+    .meta { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem 1.5rem; background: var(--bg);
+            border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; }
+    .meta div { font-size: .92rem; }
+    .meta b { color: var(--muted); font-weight: 600; }
+    .score { display: inline-block; padding: .35rem .9rem; border-radius: 999px; font-weight: 700;
+             color: #fff; font-size: .95rem; }
+    .score.alto { background: var(--alto); } .score.medio { background: var(--medio); } .score.bajo { background: var(--bajo); }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    .table-wrap { overflow-x: auto; }
+    th, td { text-align: left; padding: .5rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { background: var(--bg); color: var(--muted); font-weight: 600; white-space: nowrap; }
+    .tag { display: inline-block; font-size: .72rem; font-weight: 700; padding: .1rem .5rem;
+           border-radius: 4px; background: #ffe2e0; color: var(--alto); }
+    ul.factors { margin: .5rem 0; padding-left: 1.2rem; }
+    footer { margin-top: 2.5rem; font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 1rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Informe preliminar de antecedentes</h1>
+  <p class="muted">Sujeto consultado:
+     <strong>{{ subject.nombre }} {{ subject.ape_paterno }} {{ subject.ape_materno }}</strong>
+     {% if subject.rut %}· RUT {{ subject.rut }}{% else %}· RUT no informado{% endif %}</p>
+
+  <div class="disclaimer">
+    <strong>⚠ Disclaimer legal.</strong> Este informe contiene resultados
+    <strong>preliminares</strong> obtenidos de fuentes públicas y <strong>debe ser revisado y
+    validado por una persona autorizada</strong> antes de tomar cualquier decisión. Los hallazgos
+    <strong>no constituyen una afirmación de culpabilidad</strong> ni una recomendación de
+    contratar o no contratar. La búsqueda se realizó por nombre, por lo que pueden existir
+    <strong>homónimos</strong>: verifique la identidad por RUT. Se registran fuente, fecha y
+    parámetros de la consulta para trazabilidad.
+  </div>
+
+  <h2>Datos de la consulta</h2>
+  <div class="meta">
+    <div><b>Solicitado por:</b> {{ consulta.requested_by }}</div>
+    <div><b>Fecha de consulta:</b> {{ consulta.created_at }}</div>
+    <div><b>Fuente:</b> {{ fuente }}</div>
+    <div><b>Estado:</b> {{ consulta.status }}</div>
+    <div style="grid-column: 1 / -1;"><b>Motivo (finalidad legítima):</b> {{ consulta.motivo }}</div>
+    <div><b>Competencias:</b> {{ consulta.params.get('competencias', []) | join(', ') }}</div>
+    <div><b>Años:</b> {{ consulta.params.get('year_from', '') }}–{{ consulta.params.get('year_to', '') }}</div>
+  </div>
+
+  <h2>Resumen ejecutivo</h2>
+  <p>
+    Nivel de riesgo:
+    <span class="score {{ risk.level }}">{{ risk.level | upper }} ({{ risk.score }})</span>
+    · Total de causas: <strong>{{ risk.total }}</strong>
+  </p>
+  {% if risk.counts %}
+  <p class="muted">Distribución por competencia:
+    {% for comp, n in risk.counts.items() %}{{ comp }}: {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}
+  </p>
+  {% endif %}
+  {% if risk.homonym_warning %}
+  <div class="disclaimer"><strong>Aviso de homónimos:</strong> la mayoría de los resultados
+    podrían corresponder a homónimos. Confirmación por RUT requerida.</div>
+  {% endif %}
+  <p><b>Indicadores a revisar:</b></p>
+  <ul class="factors">
+    {% for f in risk.factors %}<li>{{ f }}</li>{% endfor %}
+  </ul>
+
+  <h2>Hallazgos ({{ cases | length }})</h2>
+  {% if cases %}
+  <div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Competencia</th><th>RIT</th><th>Tribunal</th><th>Caratulado</th>
+        <th>Ingreso</th><th>Estado</th><th>Año</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in cases %}
+      <tr>
+        <td>{{ c.competencia }}</td>
+        <td>{{ c.rit }}</td>
+        <td>{{ c.tribunal }}</td>
+        <td>{{ c.caratulado }}</td>
+        <td>{{ c.fecha_ingreso }}</td>
+        <td>{{ c.estado }}</td>
+        <td>{{ c.year }}</td>
+        <td>{% if c.possible_homonym %}<span class="tag">posible homónimo</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+  {% else %}
+  <p class="muted">No se encontraron causas para los parámetros indicados.</p>
+  {% endif %}
+
+  <footer>
+    Informe generado el {{ generated_at }} (UTC) · Fuente: {{ fuente }} ·
+    Documento de uso interno para due diligence y compliance. Los resultados requieren
+    validación humana antes de su uso.
+  </footer>
+</div>
+</body>
+</html>
