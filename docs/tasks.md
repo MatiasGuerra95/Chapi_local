@@ -82,12 +82,12 @@
 - [x] **T-80** Lint `ruff` en CI (RNF-09).
 - [x] **T-81** Tests unitarios: `risk_engine`, `MockPjudScraper`, `schemas` (CA-02, parte de CA-04).
 - [x] **T-82** CI: `ruff` + import de `app.main` + `pytest`.
-- [ ] **T-83** Tests de integración de la API (`httpx.ASGITransport`) contra Postgres de pruebas (CA-01, CA-02). *(flujo ya probado ad-hoc en T-85; falta formalizar como pytest en `tests/`)*
-- [ ] **T-84** Test del worker `run_consulta` (con Postgres+Redis efímeros o `fakeredis`).
+- [x] **T-83** Tests de integración API+worker (`httpx.ASGITransport`) contra Postgres real (`tests/test_integration.py`); CI los corre con un servicio Postgres. Se saltan sin `DATABASE_URL`.
+- [x] **T-84** Cobertura de `run_consulta` incluida en el test de integración (worker invocado directamente, sin Redis).
 - [x] **T-85** **Verificación E2E app-level** contra **Postgres local** (mock scraper + worker directo, sin Redis): 422 sin motivo, `done` con causas/score, JSON en tiempo real, informe con disclaimer/homónimos, auditoría completa (CA-01/02/03/04/05 · RC-03/RC-04). *(script: `scratchpad/verify_e2e.py`)*
 - [x] **T-88** Smoke del **stack completo** con `docker compose` (API+worker+Postgres+Redis): CA-06 ✅ + cola real Redis/arq + CA-01..05/RC-04. *(script: `scratchpad/smoke_docker.py`)* Detectó y corrigió: carrera de `create_all` API↔worker (`db.py`) y Dockerfile en Debian trixie (`libgl1-mesa-glx`→`libgl1`).
 - [ ] **T-86** Script de smoke test / demo (crear consulta → esperar `done` → abrir informe).
-- [ ] **T-87** Test RC-03 a nivel informe: los **indicadores** no afirman culpabilidad/recomendación y el **disclaimer** los niega. Nota: no basta "ausencia de palabras" — el disclaimer las menciona para negarlas (falso positivo detectado en T-85).
+- [x] **T-87** Test RC-03/RC-04 del informe (`tests/test_report.py`): indicadores sin lenguaje prohibido + disclaimer que lo niega + marca de homónimo. (Confirmado: no basta "ausencia de palabras"; el disclaimer las menciona para negarlas.)
 
 ## M9 · Entrega
 - [x] **T-90** Rama `feat/mvp-due-diligence-compliance` + commit del MVP.
