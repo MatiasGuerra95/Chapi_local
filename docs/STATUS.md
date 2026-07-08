@@ -10,23 +10,22 @@ Núcleo del MVP **implementado** (API + worker + servicios + infra + tests unita
 Falta cerrar el MVP: versionar la documentación, verificación end-to-end con Docker, tests de integración y merge.
 
 ## Ahora / próximo
-- **Siguiente:** `T-04/T-93` versionar `docs/` + `CLAUDE.md` en el repo → `T-85` verificación E2E con `docker compose`.
+- **Siguiente:** formalizar en pytest lo verificado (`T-83/T-84/T-87`) → luego `T-92/T-94` CI verde + merge del PR #1.
 
 ## Progreso (detalle en tasks.md)
 - Código MVP (M1–M7): ✅ hecho
-- Pruebas (M8): 🟡 unitarias ✅ · integración/E2E pendientes
+- Pruebas (M8): 🟡 unitarias ✅ · E2E app-level ✅ (Postgres local) · smoke full-stack ✅ (docker) · falta formalizar en pytest
 - Entrega (M9): 🟡 PR #1 abierto · falta CI verde + merge
 - Compliance operativo (M10): ⬜ pendiente
 - Fase 2: ⬜ no iniciada
 
 ## Bloqueos / decisiones abiertas
-- ⛔ `T-85` bloqueado: daemon de Docker caído; sin Postgres/Redis locales.
 - ⚠️ `T-23` colisión del JSON por persona · `T-100` revisión legal ToS PJUD · `T-101` retención de datos.
 
 ## Últimas tareas completadas
-- `T-06/T-07` sistema de seguimiento (STATUS + memoria) + `CLAUDE.md` con *Session workflow*
-- `T-01/T-02/T-03` documentación (requirements · plan · tasks)
-- `T-90/T-91` rama + commit + push + PR #1
+- `T-88` smoke full-stack docker (CA-06) ✅ — corrigió carrera `create_all` (db.py) y Dockerfile trixie; Chromium opt-in (T-73)
+- `T-85` E2E app-level contra Postgres local: CA-01/02/03/04/05 + RC-03/RC-04 ✅
+- `T-04/T-93` `docs/` + `CLAUDE.md` versionados en el PR #1 (commit `6b7d63b`)
 
 ---
 _Mantenimiento: al completar una tarea → (1) marcar su checkbox en `tasks.md`,

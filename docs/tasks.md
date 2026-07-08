@@ -24,7 +24,7 @@
 - [x] **T-03** Redactar `docs/tasks.md` (este documento).
 - [x] **T-06** Sistema de seguimiento: `docs/STATUS.md` + memoria persistente (índice `MEMORY.md`).
 - [x] **T-07** `CLAUDE.md` (guía del repo + *Session workflow* que alinea STATUS/tasks).
-- [ ] **T-04** Versionar `docs/` y `CLAUDE.md` en el repositorio (commit en la rama del PR o commit dedicado).
+- [x] **T-04** Versionar `docs/` y `CLAUDE.md` en el repositorio (commit `6b7d63b`, PR #1).
 - [ ] **T-05** Validar requisitos con stakeholders (RRHH + legal) y obtener sign-off. ⚠️
 
 ## M1 · Fundaciones (estructura, configuración, base de datos)
@@ -75,24 +75,25 @@
 - [x] **T-70** `docker-compose.yml` (api, worker, db, redis) con health checks (RNF-04).
 - [x] **T-71** `infra/Dockerfile` (imagen compartida api/worker + Playwright chromium).
 - [x] **T-72** `requirements.txt` (MVP) + `requirements-ml.txt` (fase 2) (DD-03).
-- [ ] **T-73** Optimizar imagen: evitar instalar Chromium cuando `USE_MOCK_SCRAPER=true` (tamaño/tiempo de build).
+- [x] **T-73** Imagen sin Chromium por defecto: instalación opt-in con `--build-arg INSTALL_BROWSERS=true` (fase 2). *(infra/Dockerfile)*
 - [ ] **T-74** Definir persistencia/backup de Postgres y ciclo del volumen `dbdata` (operación).
 
 ## M8 · Calidad, pruebas y verificación E2E
 - [x] **T-80** Lint `ruff` en CI (RNF-09).
 - [x] **T-81** Tests unitarios: `risk_engine`, `MockPjudScraper`, `schemas` (CA-02, parte de CA-04).
 - [x] **T-82** CI: `ruff` + import de `app.main` + `pytest`.
-- [ ] **T-83** Tests de integración de la API (`httpx.ASGITransport`) contra Postgres de pruebas (CA-01, CA-02).
+- [ ] **T-83** Tests de integración de la API (`httpx.ASGITransport`) contra Postgres de pruebas (CA-01, CA-02). *(flujo ya probado ad-hoc en T-85; falta formalizar como pytest en `tests/`)*
 - [ ] **T-84** Test del worker `run_consulta` (con Postgres+Redis efímeros o `fakeredis`).
-- [ ] **T-85** **Verificación end-to-end** con `docker compose up`: crear consulta → `done` con causas y score; JSON en tiempo real; informe con disclaimer/homónimos; auditoría completa; `POST` sin motivo → 422 (CA-01, CA-03, CA-05, CA-06). ⚠️ *(bloqueado: daemon Docker caído en el entorno actual)*
+- [x] **T-85** **Verificación E2E app-level** contra **Postgres local** (mock scraper + worker directo, sin Redis): 422 sin motivo, `done` con causas/score, JSON en tiempo real, informe con disclaimer/homónimos, auditoría completa (CA-01/02/03/04/05 · RC-03/RC-04). *(script: `scratchpad/verify_e2e.py`)*
+- [x] **T-88** Smoke del **stack completo** con `docker compose` (API+worker+Postgres+Redis): CA-06 ✅ + cola real Redis/arq + CA-01..05/RC-04. *(script: `scratchpad/smoke_docker.py`)* Detectó y corrigió: carrera de `create_all` API↔worker (`db.py`) y Dockerfile en Debian trixie (`libgl1-mesa-glx`→`libgl1`).
 - [ ] **T-86** Script de smoke test / demo (crear consulta → esperar `done` → abrir informe).
-- [ ] **T-87** Test que verifique que el informe HTML **no** contiene lenguaje de culpabilidad/recomendación (RC-03, CA-04).
+- [ ] **T-87** Test RC-03 a nivel informe: los **indicadores** no afirman culpabilidad/recomendación y el **disclaimer** los niega. Nota: no basta "ausencia de palabras" — el disclaimer las menciona para negarlas (falso positivo detectado en T-85).
 
 ## M9 · Entrega
 - [x] **T-90** Rama `feat/mvp-due-diligence-compliance` + commit del MVP.
 - [x] **T-91** Push + PR [#1](https://github.com/MatiasGuerra95/Chapi_local/pull/1).
 - [ ] **T-92** CI en verde sobre el PR.
-- [ ] **T-93** Incluir la documentación (`requirements`/`plan`/`tasks`/`STATUS`) y `CLAUDE.md` en el PR o commit dedicado (relacionada con T-04).
+- [x] **T-93** Incluir la documentación (`requirements`/`plan`/`tasks`/`STATUS`) y `CLAUDE.md` en el PR (commit `6b7d63b`).
 - [ ] **T-94** Revisión de código y **merge** a `main`.
 
 ## M10 · Compliance operativo y endurecimiento (transversal)
