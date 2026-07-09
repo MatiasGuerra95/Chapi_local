@@ -11,7 +11,7 @@ from app.config import settings
 from app.db import init_models
 from app.logging_config import configure_logging, new_request_id, set_request_id
 from app.metrics import REQUEST_DURATION, REQUESTS
-from app.routers import audit, auth, consultas, health, ui
+from app.routers import audit, auth, consultas, health, search, ui
 
 configure_logging()
 logger = logging.getLogger("app.request")
@@ -21,6 +21,11 @@ logger = logging.getLogger("app.request")
 async def lifespan(app: FastAPI):
     # Crea tablas (MVP) y abre el pool de arq (Redis) para encolar consultas.
     await init_models()
+    if settings.enable_pgvector:
+        from app import vectorstore
+        from app.db import engine
+
+        await vectorstore.ensure_schema(engine)
     app.state.arq_pool = None
     try:
         from arq import create_pool
@@ -79,4 +84,5 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(consultas.router)
 app.include_router(audit.router)
+app.include_router(search.router)
 app.include_router(ui.router)

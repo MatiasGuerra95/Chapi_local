@@ -59,7 +59,12 @@ class Settings(BaseSettings):
     use_mock_embeddings: bool = True
     enable_semantic_search: bool = True
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    # embedding_dim debe coincidir con el modelo: 64 (mock) / 384 (all-MiniLM-L6-v2).
     embedding_dim: int = 64
+
+    # Store pgvector persistente entre consultas (T-211, escala). OPT-IN: requiere
+    # imagen Postgres con la extensión (docker-compose.pgvector.yml) y ML stack.
+    enable_pgvector: bool = False
 
     # Rango de años por defecto (configurable por consulta)
     default_year_from: int = 2018

@@ -118,7 +118,7 @@
 
 ### F2.B · LLM y búsqueda semántica
 - [x] 🔒 **T-210** `nlp_service` con síntesis narrativa: `MockSummarizer` rule-based (default MVP, compliant RC-03) + skeleton `LlamaCppSummarizer` (lazy, opt-in `USE_MOCK_NLP=false`); cableado en el informe (+6 tests). Reemplaza el stub inicial.
-- [ ] 🔒 **T-211** Embeddings + pgvector: `embeddings_service` (`MockEmbedder` hashing + skeleton `SentenceTransformerEmbedder`) ✅ y overlay `docker-compose.pgvector.yml` (imagen `pgvector/pgvector:pg16` + init SQL) ✅. **Pendiente**: columna/índice pgvector persistente entre consultas (requiere ML stack corriendo). ⚠️
+- [x] 🔒 **T-211** Embeddings + pgvector: `embeddings_service` (`MockEmbedder` + skeleton `SentenceTransformerEmbedder`) y **store persistente** `app/vectorstore.py` (`CaseEmbedding` con columna `Vector`, `ensure_schema`, `index_cases`, `search` por `cosine_distance`). OPT-IN (`ENABLE_PGVECTOR`, metadata propio → no toca core/Alembic); el worker indexa al terminar. Overlay `docker-compose.pgvector.yml`. Verificado E2E contra `pgvector/pgvector:pg16`.
 - [x] 🔒 **T-212** Endpoint `GET /consultas/{id}/similar?q=&top=`: ranking por similitud coseno de embeddings sobre las causas de la consulta (en memoria; gated por `ENABLE_SEMANTIC_SEARCH`) + tests (`tests/test_embeddings.py`).
 
 ### F2.C · Identidad, datos y migraciones
@@ -132,7 +132,7 @@
 - [x] 🔒 **T-231** Export a **PDF**: `GET /consultas/{id}/report.pdf` renderiza el informe HTML a PDF con Playwright/chromium (`report_generator.render_pdf`, patrón navegador-lazy); 503 si no hay navegador. Requiere imagen con `INSTALL_BROWSERS=true`. Verificado: PDF real (`%PDF`, ~17KB) en la imagen con chromium.
 - [x] 🔒 **T-232** Observabilidad: endpoint `GET /metrics` (Prometheus) con contadores de requests HTTP (método/ruta/status + duración, vía middleware) y gauges de negocio (consultas por estado, causas totales) calculados desde la BD. Dashboards/alertas quedan al stack externo (Prometheus/Grafana). *(`app/metrics.py`)*
 - [x] 🔒 **T-233** Evaluación de fuentes adicionales redactada (`docs/phase2/additional-sources-evaluation.md`): candidatas (Boletín Comercial, inhabilidades ChileCompra, Diario Oficial, etc.), acceso/legalidad, encaje con el `Protocol` del scraper (`EvidenceSource` + campo `source` + ponderación por fuente) y priorización.
-
+    
 ---
 
 ## Decisiones abiertas (bloquean o condicionan tareas)

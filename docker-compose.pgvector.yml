@@ -7,13 +7,19 @@
 # crea la extensión a mano una vez:
 #   docker compose exec db psql -U pguser -d chapi -c "CREATE EXTENSION IF NOT EXISTS vector;"
 #
-# Estado: infraestructura lista. La persistencia de embeddings en una columna
-# pgvector (índice entre consultas) requiere el stack ML (requirements-ml.txt) y
-# se implementa como paso siguiente; el endpoint /consultas/{id}/similar ya rankea
-# en memoria por consulta con el embedder configurado.
+# Habilita ENABLE_PGVECTOR en api+worker: el worker indexa embeddings de cada causa
+# en la tabla case_embeddings (creada por vectorstore.ensure_schema al arrancar) y
+# se expone GET /search/similar (búsqueda entre consultas). Requiere el ML stack
+# (requirements-ml.txt trae pgvector) instalado en la imagen.
 services:
   db:
     image: pgvector/pgvector:pg16
     volumes:
       - dbdata:/var/lib/postgresql/data
       - ./infra/pgvector-init.sql:/docker-entrypoint-initdb.d/10-vector.sql:ro
+  api:
+    environment:
+      ENABLE_PGVECTOR: "true"
+  worker:
+    environment:
+      ENABLE_PGVECTOR: "true"

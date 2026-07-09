@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 from arq.connections import RedisSettings
+from sqlalchemy import select
 
 from app import models
 from app.config import settings
@@ -133,6 +134,27 @@ async def run_consulta(ctx, consulta_id: str):
                 extra={"consulta_id": consulta_id, "total": risk["total"],
                        "score": risk["score"], "level": risk["level"]},
             )
+
+            # T-211 (opt-in): indexa embeddings en pgvector para búsqueda entre consultas.
+            if settings.enable_pgvector:
+                try:
+                    from app import vectorstore
+                    from app.services import embeddings_service
+
+                    cases = (
+                        await session.execute(
+                            select(models.CaseResult).where(
+                                models.CaseResult.consulta_id == consulta.id
+                            )
+                        )
+                    ).scalars().all()
+                    n = await vectorstore.index_cases(
+                        session, consulta.id, cases, embeddings_service.get_embedder()
+                    )
+                    logger.info("pgvector_indexed", extra={"consulta_id": consulta_id, "n": n})
+                except Exception:
+                    logger.exception("pgvector_index_error", extra={"consulta_id": consulta_id})
+
             return {"status": "done", "total": risk["total"], "score": risk["score"]}
 
         except Exception as exc:  # noqa: BLE001
@@ -159,6 +181,11 @@ async def run_consulta(ctx, consulta_id: str):
 async def _startup(ctx):
     configure_logging()
     await init_models()
+    if settings.enable_pgvector:
+        from app import vectorstore
+        from app.db import engine
+
+        await vectorstore.ensure_schema(engine)
 
 
 class WorkerSettings:
