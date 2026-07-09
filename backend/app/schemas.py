@@ -131,6 +131,13 @@ class ConsultaDetailOut(ConsultaOut):
     homonym_count: int = 0
 
 
+class SimilarCaseOut(BaseModel):
+    """Causa rankeada por similitud semántica (T-212)."""
+
+    similarity: float
+    case: CaseResultOut
+
+
 class AuditOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

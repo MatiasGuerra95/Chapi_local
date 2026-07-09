@@ -118,8 +118,8 @@
 
 ### F2.B · LLM y búsqueda semántica
 - [x] 🔒 **T-210** `nlp_service` con síntesis narrativa: `MockSummarizer` rule-based (default MVP, compliant RC-03) + skeleton `LlamaCppSummarizer` (lazy, opt-in `USE_MOCK_NLP=false`); cableado en el informe (+6 tests). Reemplaza el stub inicial.
-- [ ] 🔒 **T-211** Embeddings + pgvector — requiere **imagen Postgres con la extensión pgvector** (postgres:16 no la trae). ⚠️
-- [ ] 🔒 **T-212** Endpoint/consulta semántica sobre causas.
+- [ ] 🔒 **T-211** Embeddings + pgvector: `embeddings_service` (`MockEmbedder` hashing + skeleton `SentenceTransformerEmbedder`) ✅ y overlay `docker-compose.pgvector.yml` (imagen `pgvector/pgvector:pg16` + init SQL) ✅. **Pendiente**: columna/índice pgvector persistente entre consultas (requiere ML stack corriendo). ⚠️
+- [x] 🔒 **T-212** Endpoint `GET /consultas/{id}/similar?q=&top=`: ranking por similitud coseno de embeddings sobre las causas de la consulta (en memoria; gated por `ENABLE_SEMANTIC_SEARCH`) + tests (`tests/test_embeddings.py`).
 
 ### F2.C · Identidad, datos y migraciones
 - [ ] 🔒 **T-220** Autenticación/autorización de usuarios internos (reemplaza DD-05).

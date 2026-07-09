@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     llama_model_path: str = "./models/llama-q4.gguf"
     llama_n_ctx: int = 4096
 
+    # Embeddings / búsqueda semántica (T-211/T-212). Mock (hashing) por defecto;
+    # sentence-transformers real es opt-in (fase 2, requirements-ml.txt).
+    use_mock_embeddings: bool = True
+    enable_semantic_search: bool = True
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    embedding_dim: int = 64
+
     # Rango de años por defecto (configurable por consulta)
     default_year_from: int = 2018
     default_year_to: int = 2024

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,7 +14,7 @@ from app.config import settings
 from app.db import get_session
 from app.logging_config import request_id_var
 from app.security import require_access
-from app.services import audit_service, report_generator, risk_engine
+from app.services import audit_service, embeddings_service, report_generator, risk_engine
 
 router = APIRouter(
     prefix="/consultas", tags=["consultas"], dependencies=[Depends(require_access)]
@@ -115,6 +115,42 @@ async def obtener_consulta(consulta_id: str, session: AsyncSession = Depends(get
     detail.counts = risk["counts"]
     detail.homonym_count = sum(1 for c in consulta.cases if c.possible_homonym)
     return detail
+
+
+@router.get("/{consulta_id}/similar", response_model=list[schemas.SimilarCaseOut])
+async def buscar_similares(
+    consulta_id: str,
+    q: str = Query(min_length=1, description="Texto a buscar semánticamente"),
+    top: int = Query(default=5, ge=1, le=50),
+    session: AsyncSession = Depends(get_session),
+):
+    """Búsqueda semántica sobre las causas de la consulta (T-212).
+
+    Rankea en memoria por similitud coseno del embedding del texto ``q`` contra el
+    de cada causa. Con `USE_MOCK_EMBEDDINGS=true` (default) usa un embedder léxico;
+    la escala entre consultas con pgvector es el paso siguiente (fase 2).
+    """
+    if not settings.enable_semantic_search:
+        raise HTTPException(status_code=404, detail="Búsqueda semántica deshabilitada.")
+    cid = _parse_uuid(consulta_id)
+    consulta = await _get_consulta(session, cid, with_cases=True)
+
+    embedder = embeddings_service.get_embedder()
+    qv = embedder.embed(q)
+    scored = []
+    for c in consulta.cases:
+        texto = " ".join(
+            str(x) for x in (c.caratulado, c.competencia, c.tribunal, c.estado) if x
+        )
+        sim = embeddings_service.cosine(qv, embedder.embed(texto))
+        scored.append((sim, c))
+    scored.sort(key=lambda t: t[0], reverse=True)
+    return [
+        schemas.SimilarCaseOut(
+            similarity=round(sim, 4), case=schemas.CaseResultOut.model_validate(c)
+        )
+        for sim, c in scored[:top]
+    ]
 
 
 @router.get("/{consulta_id}/report", response_class=HTMLResponse)

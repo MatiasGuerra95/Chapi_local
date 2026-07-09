@@ -1,0 +1,19 @@
+# Overlay para habilitar pgvector (T-211): reemplaza la imagen de Postgres por una
+# con la extensión `vector` disponible, y crea la extensión al inicializar.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.pgvector.yml up --build
+#
+# Nota: el init SQL sólo corre al crear un volumen NUEVO. Si `dbdata` ya existe,
+# crea la extensión a mano una vez:
+#   docker compose exec db psql -U pguser -d chapi -c "CREATE EXTENSION IF NOT EXISTS vector;"
+#
+# Estado: infraestructura lista. La persistencia de embeddings en una columna
+# pgvector (índice entre consultas) requiere el stack ML (requirements-ml.txt) y
+# se implementa como paso siguiente; el endpoint /consultas/{id}/similar ya rankea
+# en memoria por consulta con el embedder configurado.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./infra/pgvector-init.sql:/docker-entrypoint-initdb.d/10-vector.sql:ro
