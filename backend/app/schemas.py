@@ -131,6 +131,41 @@ class ConsultaDetailOut(ConsultaOut):
     homonym_count: int = 0
 
 
+_ROLES = {"analyst", "admin"}
+
+
+class LoginIn(BaseModel):
+    username: str = Field(min_length=1)
+    password: str = Field(min_length=1)
+
+
+class TokenOut(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+
+class UserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=150)
+    password: str = Field(min_length=8)
+    role: str = "analyst"
+
+    @field_validator("role")
+    @classmethod
+    def _rol_valido(cls, v: str) -> str:
+        if v not in _ROLES:
+            raise ValueError(f"Rol no soportado: {v}. Válidos: {sorted(_ROLES)}")
+        return v
+
+
+class UserOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    username: str
+    role: str
+    is_active: bool
+
+
 class SimilarCaseOut(BaseModel):
     """Causa rankeada por similitud semántica (T-212)."""
 

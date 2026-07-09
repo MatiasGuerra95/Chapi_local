@@ -13,11 +13,11 @@ from app import models, schemas
 from app.config import settings
 from app.db import get_session
 from app.logging_config import request_id_var
-from app.security import require_access
+from app.security import authorize
 from app.services import audit_service, embeddings_service, report_generator, risk_engine
 
 router = APIRouter(
-    prefix="/consultas", tags=["consultas"], dependencies=[Depends(require_access)]
+    prefix="/consultas", tags=["consultas"], dependencies=[Depends(authorize)]
 )
 
 
@@ -50,7 +50,7 @@ async def crear_consulta(
     payload: schemas.ConsultaCreate,
     request: Request,
     session: AsyncSession = Depends(get_session),
-    principal: str = Depends(require_access),
+    principal: str = Depends(authorize),
 ):
     """Crea una consulta (con finalidad legítima), audita y encola el scraping."""
     subject = models.Subject(**payload.subject.model_dump())

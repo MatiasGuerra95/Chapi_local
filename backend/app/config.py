@@ -21,6 +21,13 @@ class Settings(BaseSettings):
     # y gestionar el esquema con Alembic (T-221).
     auto_create_tables: bool = True
 
+    # Autenticación de usuarios (T-220). auth_enabled=false => los endpoints de
+    # negocio siguen con el control por API key (T-102). true => exigen JWT de usuario.
+    auth_enabled: bool = False
+    jwt_secret: str = ""
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 480
+
     # Scraper
     use_mock_scraper: bool = True
     results_dir: str = "results"

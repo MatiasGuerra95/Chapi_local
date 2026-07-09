@@ -16,9 +16,14 @@ from __future__ import annotations
 import logging
 import secrets
 
-from fastapi import Header, HTTPException, status
+from fastapi import Depends, Header, HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import models
 from app.config import settings
+from app.db import get_session
+from app.services import auth_service
 
 logger = logging.getLogger("app.security")
 
@@ -51,3 +56,69 @@ def require_access(
             headers={"WWW-Authenticate": "Bearer"},
         )
     return "api-key"
+
+
+# ─── Autenticación de usuarios (T-220) ─────────────────────────────────────
+def _bearer_token(authorization: str | None) -> str:
+    if not authorization or not authorization.lower().startswith("bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token de acceso ausente.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return authorization[len("bearer "):].strip()
+
+
+async def _user_from_bearer(authorization: str | None, session: AsyncSession) -> models.User:
+    import jwt
+
+    token = _bearer_token(authorization)
+    try:
+        payload = auth_service.decode_token(token)
+    except jwt.PyJWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido o expirado.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    username = payload.get("sub")
+    user = (
+        await session.execute(select(models.User).where(models.User.username == username))
+    ).scalar_one_or_none()
+    if user is None or not user.is_active:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Usuario no válido.")
+    return user
+
+
+async def get_current_user(
+    authorization: str | None = Header(default=None),
+    session: AsyncSession = Depends(get_session),
+) -> models.User:
+    """Dependencia: usuario autenticado por JWT (para /auth y RBAC)."""
+    return await _user_from_bearer(authorization, session)
+
+
+def require_role(*roles: str):
+    """Factory de dependencia: exige que el usuario tenga uno de ``roles``."""
+
+    async def _dep(user: models.User = Depends(get_current_user)) -> models.User:
+        if roles and user.role not in roles:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permisos insuficientes.")
+        return user
+
+    return _dep
+
+
+async def authorize(
+    x_api_key: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    session: AsyncSession = Depends(get_session),
+) -> str:
+    """Gate de los endpoints de negocio: JWT de usuario si AUTH_ENABLED, si no API key.
+
+    Devuelve el principal (``user:<username>`` o el de ``require_access``).
+    """
+    if settings.auth_enabled:
+        user = await _user_from_bearer(authorization, session)
+        return f"user:{user.username}"
+    return require_access(x_api_key=x_api_key, authorization=authorization)
