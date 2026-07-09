@@ -6,28 +6,30 @@ _Última actualización: 2026-07-09 · rama `main` · MVP mergeado (squash `de7c
 > Backlog completo con checkboxes en [`tasks.md`](./tasks.md).
 
 ## ¿Dónde nos quedamos?
-**MVP mergeado a `main`**; avanzando el frente **M10 (hardening)**. Commiteado `3ada43b`: `T-22` índices, `T-46` readiness `GET /health/ready`, `T-103` logging JSON con correlación. En árbol de trabajo (por commitear): `T-102` control de acceso por API key + `T-105` motivo endurecido + evidencia de propósito en auditoría. Verificado: ruff ✅ + import ✅ + pytest **29 passed / 1 skipped** (integración se salta sin Postgres).
+**MVP en `main`**; frente **M10 casi cerrado**. Pusheado a `origin/main`: `T-22`/`T-46`/`T-103` (`3ada43b`), `T-102`/`T-105` (`043d6ec`), `T-104` politeness/throttle (`6126ff2`). Redactados (borradores) `T-100` y `T-101` en `docs/compliance/`. Verificado: ruff ✅ + import ✅ + pytest **34 passed / 1 skipped**.
 
 ## Ahora / próximo
-- **Commitear** T-102/T-105 a `main` (directo).
-- Seguir M10: `T-103`✅/`T-104` (rate limiting → se difiere al scraper real). Quedan `T-100`/`T-101` (legal/retención, decisión del usuario) y transversales `T-104` (Fase 2).
-- ⚠️ `.gitignore` local agrega `/docs` (ignoraría la carpeta de documentación) — **revisar/revertir** (no commiteado).
+- **Commitear** los docs de compliance (T-100/T-101) — ojo: `.gitignore` local ignora `/docs`, así que se agregan con `git add -f`.
+- M10 sólo queda a la espera de **decisiones legales/negocio**: validar `T-100` (base de licitud + ToS OJV) y `T-101` (plazos de retención, auditoría vs. supresión). Ver los `⚠️ DECISIÓN REQUERIDA` en los borradores.
+- Con M10 cerrado → **Fase 2** (scraper real: `T-200` competencias Civil/Cobranza, `T-201` PlaywrightPjudScraper), **gated** por T-100.
+- ⚠️ `.gitignore` local mantiene `/docs` (por decisión del usuario) — nuevos docs requieren `git add -f`.
 
 ## Progreso (detalle en tasks.md)
 - Código MVP (M1–M7): ✅ hecho
 - Pruebas (M8): 🟢 unit + integración (pytest+Postgres) ✅ · E2E app-level ✅ · smoke full-stack docker ✅
 - Entrega (M9): 🟢 **mergeado a main** (squash `de7cb59`)
-- Compliance operativo (M10): 🟡 en curso — `T-22`/`T-46`/`T-103`/`T-102`/`T-105` ✅; legal (`T-100`/`T-101`) pendiente; `T-104` diferido
-- Fase 2: ⬜ no iniciada
+- Compliance operativo (M10): 🟡 casi — código `T-22`/`T-46`/`T-102`/`T-103`/`T-104`/`T-105` ✅; `T-100`/`T-101` borrador redactado, **pendiente validación legal**
+- Fase 2: ⬜ no iniciada (gated por T-100)
 
 ## Bloqueos / decisiones abiertas
 - ⚠️ `T-23` colisión del JSON por persona · `T-100` revisión legal ToS PJUD · `T-101` retención de datos.
 - `T-104`/`T-65`/`T-66` se difieren para acompañar el scraper real (Fase 2), donde tienen efecto real.
 
 ## Últimas tareas completadas
-- `T-102`/`T-105` **compliance M10**: control de acceso por API key + `motivo` endurecido y evidencia de propósito en auditoría (+11 tests)
-- `T-22`/`T-46`/`T-103` **hardening M10**: índices de BD, readiness DB+Redis, logging JSON con correlación (commit `3ada43b`)
-- `T-94` **merge del PR #1 a main** (squash `de7cb59`); rama eliminada
+- `T-100`/`T-101` **borradores de compliance** en `docs/compliance/` (base de licitud/ToS + retención), pendientes de validación legal
+- `T-104` **politeness/rate limiting** (`RateLimiter` + `retry_async`, `6126ff2`, +5 tests)
+- `T-102`/`T-105` **compliance M10**: API key + `motivo` endurecido y evidencia de propósito (`043d6ec`, +11 tests)
+- `T-22`/`T-46`/`T-103` **hardening M10**: índices, readiness, logging con correlación (`3ada43b`)
 
 ---
 _Mantenimiento: al completar una tarea → (1) marcar su checkbox en `tasks.md`,
