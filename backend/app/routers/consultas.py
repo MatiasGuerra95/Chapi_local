@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -115,6 +115,29 @@ async def buscar_similares(
         )
         for sim, c in scored[:top]
     ]
+
+
+@router.get("/{consulta_id}/report.pdf")
+async def generar_informe_pdf(consulta_id: str, session: AsyncSession = Depends(get_session)):
+    """Exporta el informe a PDF (T-231). Requiere navegador de Playwright (503 si no)."""
+    cid = _parse_uuid(consulta_id)
+    consulta = await _get_consulta(session, cid, with_cases=True)
+    risk = risk_engine.compute_score(consulta.cases)
+    html = report_generator.render_report(
+        consulta=consulta, subject=consulta.subject, cases=consulta.cases, risk=risk
+    )
+    try:
+        pdf = await report_generator.render_pdf(html)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(
+            status_code=503,
+            detail="Exportación a PDF no disponible (requiere navegador Playwright).",
+        ) from exc
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="informe_{cid}.pdf"'},
+    )
 
 
 @router.get("/{consulta_id}/report", response_class=HTMLResponse)

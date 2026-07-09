@@ -30,6 +30,24 @@ def render_report(*, consulta, subject, cases, risk: dict) -> str:
     )
 
 
+async def render_pdf(html: str) -> bytes:
+    """Convierte el HTML del informe a PDF con Playwright (T-231).
+
+    Requiere el navegador de Playwright (imagen con ``INSTALL_BROWSERS=true``). Si no
+    está disponible, lanza excepción y el endpoint responde 503.
+    """
+    from playwright.async_api import async_playwright  # import perezoso
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(args=["--no-sandbox", "--disable-dev-shm-usage"])
+        try:
+            page = await browser.new_page()
+            await page.set_content(html, wait_until="load")
+            return await page.pdf(format="A4", print_background=True)
+        finally:
+            await browser.close()
+
+
 def save_report(consulta_id, html: str) -> str:
     """Guarda el HTML en results/ y devuelve la ruta."""
     out_dir = Path(settings.results_dir)

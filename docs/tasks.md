@@ -129,7 +129,7 @@
 
 ### F2.D · Producto y operación
 - [x] 🔒 **T-230** UI mínima server-rendered (Jinja2): `GET /ui` (form + consultas recientes), `POST /ui/consultas` (reutiliza `consulta_service` → motivo+auditoría), `GET /ui/consultas/{id}` (estado con auto-refresh + enlace al informe). Verificada E2E contra Postgres real.
-- [ ] 🔒 **T-231** Exportar informe a **PDF**.
+- [x] 🔒 **T-231** Export a **PDF**: `GET /consultas/{id}/report.pdf` renderiza el informe HTML a PDF con Playwright/chromium (`report_generator.render_pdf`, patrón navegador-lazy); 503 si no hay navegador. Requiere imagen con `INSTALL_BROWSERS=true`. Verificado: PDF real (`%PDF`, ~17KB) en la imagen con chromium.
 - [x] 🔒 **T-232** Observabilidad: endpoint `GET /metrics` (Prometheus) con contadores de requests HTTP (método/ruta/status + duración, vía middleware) y gauges de negocio (consultas por estado, causas totales) calculados desde la BD. Dashboards/alertas quedan al stack externo (Prometheus/Grafana). *(`app/metrics.py`)*
 - [ ] 🔒 **T-233** Evaluar fuentes adicionales (Boletín Comercial, inhabilidades, etc.).
 

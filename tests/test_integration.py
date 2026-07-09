@@ -60,6 +60,12 @@ def test_flujo_completo_api_worker():
             r = await c.get(f"/consultas/{cid}/report")
             assert r.status_code == 200 and "Disclaimer legal" in r.text
 
+            # Informe PDF (T-231): 200 con %PDF si hay navegador, o 503 si no está.
+            rp = await c.get(f"/consultas/{cid}/report.pdf")
+            assert rp.status_code in (200, 503)
+            if rp.status_code == 200:
+                assert rp.content[:4] == b"%PDF"
+
             # Auditoría del ciclo de vida
             actions = {a["action"] for a in (await c.get(f"/audit?consulta_id={cid}")).json()}
             assert {"consulta_creada", "consulta_iniciada",
