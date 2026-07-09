@@ -10,6 +10,7 @@ from fastapi import FastAPI, Request
 from app.config import settings
 from app.db import init_models
 from app.logging_config import configure_logging, new_request_id, set_request_id
+from app.metrics import REQUEST_DURATION, REQUESTS
 from app.routers import audit, auth, consultas, health, ui
 
 configure_logging()
@@ -38,28 +39,38 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 
+def _record_metric(request: Request, status_code: int, elapsed_s: float) -> None:
+    # Etiqueta por plantilla de ruta (no el path con ids) para acotar cardinalidad.
+    route = request.scope.get("route")
+    path = getattr(route, "path", None) or "other"
+    REQUESTS.labels(method=request.method, path=path, status=str(status_code)).inc()
+    REQUEST_DURATION.labels(method=request.method, path=path).observe(elapsed_s)
+
+
 @app.middleware("http")
 async def correlation_middleware(request: Request, call_next):
-    """Asigna/propaga un request-id de correlación y registra cada request."""
+    """Asigna/propaga un request-id de correlación, registra y mide cada request."""
     request_id = request.headers.get("X-Request-ID") or new_request_id()
     set_request_id(request_id)
     started = time.perf_counter()
     try:
         response = await call_next(request)
     except Exception:
-        elapsed_ms = (time.perf_counter() - started) * 1000
+        elapsed = time.perf_counter() - started
+        _record_metric(request, 500, elapsed)
         logger.exception(
             "request_error",
             extra={"method": request.method, "path": request.url.path,
-                   "elapsed_ms": round(elapsed_ms, 1)},
+                   "elapsed_ms": round(elapsed * 1000, 1)},
         )
         raise
-    elapsed_ms = (time.perf_counter() - started) * 1000
+    elapsed = time.perf_counter() - started
+    _record_metric(request, response.status_code, elapsed)
     response.headers["X-Request-ID"] = request_id
     logger.info(
         "request",
         extra={"method": request.method, "path": request.url.path,
-               "status": response.status_code, "elapsed_ms": round(elapsed_ms, 1)},
+               "status": response.status_code, "elapsed_ms": round(elapsed * 1000, 1)},
     )
     return response
 

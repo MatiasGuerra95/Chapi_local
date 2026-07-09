@@ -130,7 +130,7 @@
 ### F2.D · Producto y operación
 - [x] 🔒 **T-230** UI mínima server-rendered (Jinja2): `GET /ui` (form + consultas recientes), `POST /ui/consultas` (reutiliza `consulta_service` → motivo+auditoría), `GET /ui/consultas/{id}` (estado con auto-refresh + enlace al informe). Verificada E2E contra Postgres real.
 - [ ] 🔒 **T-231** Exportar informe a **PDF**.
-- [ ] 🔒 **T-232** Observabilidad (métricas, dashboards, alertas).
+- [x] 🔒 **T-232** Observabilidad: endpoint `GET /metrics` (Prometheus) con contadores de requests HTTP (método/ruta/status + duración, vía middleware) y gauges de negocio (consultas por estado, causas totales) calculados desde la BD. Dashboards/alertas quedan al stack externo (Prometheus/Grafana). *(`app/metrics.py`)*
 - [ ] 🔒 **T-233** Evaluar fuentes adicionales (Boletín Comercial, inhabilidades, etc.).
 
 ---

@@ -11,4 +11,5 @@ pydantic-settings==2.*
 pyjwt==2.*
 python-dotenv==1.0.*
 beautifulsoup4==4.*
+prometheus-client==0.20.*
 python-slugify==8.*

@@ -3,12 +3,15 @@ from __future__ import annotations
 
 import logging
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import JSONResponse
-from sqlalchemy import text
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app import models
 from app.db import get_session
+from app.metrics import CASES, CONSULTAS
 
 router = APIRouter(tags=["health"])
 logger = logging.getLogger("app.health")
@@ -50,3 +53,25 @@ async def readiness(request: Request, session: AsyncSession = Depends(get_sessio
     ready = all(v == "ok" for v in checks.values())
     body = {"status": "ready" if ready else "not_ready", "checks": checks}
     return JSONResponse(body, status_code=200 if ready else 503)
+
+
+@router.get("/metrics")
+async def metrics(session: AsyncSession = Depends(get_session)):
+    """Métricas en formato Prometheus (T-232). Sin auth: para el scraper de métricas."""
+    try:
+        rows = (
+            await session.execute(
+                select(models.Consulta.status, func.count()).group_by(models.Consulta.status)
+            )
+        ).all()
+        CONSULTAS.clear()
+        for status_val, n in rows:
+            CONSULTAS.labels(status=status_val).set(n)
+        total_cases = (
+            await session.execute(select(func.count()).select_from(models.CaseResult))
+        ).scalar_one()
+        CASES.set(total_cases)
+    except Exception as exc:  # noqa: BLE001
+        # No romper el scrape de métricas si la BD no responde; se exponen las de proceso.
+        logger.warning("metrics_db_fail", extra={"error": str(exc)[:200]})
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
