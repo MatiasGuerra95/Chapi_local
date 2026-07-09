@@ -9,6 +9,12 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 from app.config import COMPETENCIAS, DEFAULT_COMPETENCIAS, settings
 
+# Motivos genéricos que no evidencian una finalidad legítima (T-105/RC-01).
+_MOTIVOS_TRIVIALES = {
+    "test", "prueba", "pruebas", "asdf", "qwerty", "n/a", "na", "sin motivo",
+    "ninguno", "nada", "por probar", "revisar", "consulta", "consultar",
+}
+
 
 class SubjectIn(BaseModel):
     tipo: str = "persona"
@@ -31,9 +37,26 @@ class ConsultaCreate(BaseModel):
     @field_validator("motivo")
     @classmethod
     def _motivo_no_trivial(cls, v: str) -> str:
-        v = v.strip()
+        # T-105/RC-01/RC-02: la finalidad legítima debe ser descriptiva, no un
+        # relleno para saltarse el gating (longitud sola no basta).
+        v = " ".join(v.split())  # normaliza espacios
         if len(v) < 10:
-            raise ValueError("El motivo (finalidad legítima) es obligatorio y debe ser descriptivo.")
+            raise ValueError(
+                "El motivo (finalidad legítima) es obligatorio y debe ser descriptivo "
+                "(al menos 10 caracteres)."
+            )
+        if v.lower() in _MOTIVOS_TRIVIALES:
+            raise ValueError("El motivo debe describir una finalidad legítima concreta.")
+        letras = [c for c in v.lower() if c.isalpha()]
+        if len(letras) < 6:
+            raise ValueError(
+                "El motivo debe contener texto descriptivo, no sólo números o símbolos."
+            )
+        if len(set(letras)) < 4:  # p.ej. "aaaaaaaaaa"
+            raise ValueError("El motivo no puede ser un texto repetitivo; describa la finalidad.")
+        palabras = [w for w in v.split() if sum(ch.isalpha() for ch in w) >= 2]
+        if len(palabras) < 2:
+            raise ValueError("El motivo debe describir la finalidad con al menos dos palabras.")
         return v
 
     @field_validator("competencias")

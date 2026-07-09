@@ -13,6 +13,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://pguser:pgpass@db:5432/chapi"
     redis_url: str = "redis://redis:6379/0"
 
+    # Control de acceso mínimo (T-102). Vacío => modo abierto (MVP/dev, sin auth);
+    # definido => exige la clave en los endpoints de negocio. Auth por usuario: fase 2.
+    api_key: str = ""
+
     # Scraper
     use_mock_scraper: bool = True
     results_dir: str = "results"

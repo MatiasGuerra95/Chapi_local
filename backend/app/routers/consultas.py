@@ -12,9 +12,13 @@ from sqlalchemy.orm import selectinload
 from app import models, schemas
 from app.config import settings
 from app.db import get_session
+from app.logging_config import request_id_var
+from app.security import require_access
 from app.services import audit_service, report_generator, risk_engine
 
-router = APIRouter(prefix="/consultas", tags=["consultas"])
+router = APIRouter(
+    prefix="/consultas", tags=["consultas"], dependencies=[Depends(require_access)]
+)
 
 
 def _sujeto_txt(subject: models.Subject) -> str:
@@ -46,6 +50,7 @@ async def crear_consulta(
     payload: schemas.ConsultaCreate,
     request: Request,
     session: AsyncSession = Depends(get_session),
+    principal: str = Depends(require_access),
 ):
     """Crea una consulta (con finalidad legítima), audita y encola el scraping."""
     subject = models.Subject(**payload.subject.model_dump())
@@ -68,6 +73,8 @@ async def crear_consulta(
     session.add(consulta)
     await session.flush()
 
+    # T-105: reforzar la evidencia de finalidad legítima: además del motivo, se
+    # registra el principal autenticado y el request-id de correlación de la petición.
     await audit_service.log_event(
         session,
         consulta_id=consulta.id,
@@ -76,7 +83,7 @@ async def crear_consulta(
         sujeto=_sujeto_txt(subject),
         fuente=settings.fuente,
         action="consulta_creada",
-        params=params,
+        params={**params, "principal": principal, "request_id": request_id_var.get()},
     )
     await session.commit()
 

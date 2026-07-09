@@ -10,8 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app import models, schemas
 from app.db import get_session
+from app.security import require_access
 
-router = APIRouter(prefix="/audit", tags=["audit"])
+router = APIRouter(prefix="/audit", tags=["audit"], dependencies=[Depends(require_access)])
 
 
 @router.get("", response_model=list[schemas.AuditOut])

@@ -99,10 +99,10 @@
 ## M10 · Compliance operativo y endurecimiento (transversal)
 - [ ] **T-100** Revisión legal: base de licitud del tratamiento y **Términos de Uso** de la OJV/PJUD para scraping automatizado (RC-05). ⚠️
 - [ ] **T-101** Política de **retención y eliminación** de datos personales (Ley 19.628 / Ley 21.719): plazos, borrado, propósito limitado.
-- [ ] **T-102** Control de acceso y minimización: quién puede crear consultas y ver resultados/informes.
+- [x] **T-102** Control de acceso mínimo por API key (activable con `API_KEY`; abierto en dev/MVP) en endpoints de negocio (consultas/audit); health/readiness abiertos. Minimización: las respuestas no exponen rutas de FS ni secretos. Auth por usuario/RBAC → fase 2 (T-220). *(`app/security.py`)*
 - [x] **T-103** Logging estructurado JSON con correlación (`request_id` en API vía middleware + header `X-Request-ID`; `job_id` de arq en el worker) para trazabilidad técnica. *(`app/logging_config.py`)*
 - [ ] **T-104** Rate limiting y "politeness" hacia la fuente (throttling/backoff) — prerequisito del scraper real.
-- [ ] **T-105** Reforzar registro de propósito por consulta (evidencia de finalidad legítima) (RC-01, RC-05).
+- [x] **T-105** Reforzar evidencia de propósito: validación de `motivo` endurecida (rechaza triviales/repetitivos/símbolos/una-palabra, no sólo por longitud) + auditoría de `consulta_creada` enriquecida con `principal` y `request_id` (RC-01, RC-05).
 
 ---
 
