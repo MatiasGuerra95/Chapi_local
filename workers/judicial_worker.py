@@ -17,7 +17,7 @@ from app import models
 from app.config import settings
 from app.db import SessionLocal, init_models
 from app.logging_config import configure_logging, set_job_id
-from app.services import audit_service, risk_engine
+from app.services import audit_service, risk_engine, rut_utils
 from app.services.pjud_scraper import get_scraper, persona_slug
 
 logger = logging.getLogger("app.worker")
@@ -80,6 +80,11 @@ async def run_consulta(ctx, consulta_id: str):
                     year_from,
                     year_to,
                 ):
+                    # T-222/RC-04: si el sujeto tiene RUT y una causa lo lista entre
+                    # sus litigantes, se confirma identidad y deja de ser homónimo.
+                    if rut_utils.confirms_identity(rec.get("litigantes"), subject.rut):
+                        rec["possible_homonym"] = False
+
                     if not first:
                         jf.write(",\n")
                     json.dump(rec, jf, ensure_ascii=False)

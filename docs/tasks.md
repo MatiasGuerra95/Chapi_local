@@ -124,7 +124,7 @@
 ### F2.C · Identidad, datos y migraciones
 - [ ] 🔒 **T-220** Autenticación/autorización de usuarios internos (reemplaza DD-05).
 - [ ] 🔒 **T-221** Migraciones con **Alembic** (reemplaza `create_all`, DD-06).
-- [ ] 🔒 **T-222** Consulta por **RUT** y desambiguación de homónimos por RUT (RC-04).
+- [ ] 🔒 **T-222** **Desambiguación de homónimos por RUT hecha** (RC-04): `rut_utils` normaliza RUT y, si el sujeto tiene RUT y una causa lo lista entre sus litigantes, el worker desmarca `possible_homonym` (+7 tests). **Pendiente**: consulta por RUT como *input* de búsqueda (flujo distinto en la OJV).
 - [ ] 🔒 **T-223** Consulta de **empresas** (razón social/RUT) (RD-01).
 
 ### F2.D · Producto y operación
