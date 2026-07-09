@@ -10,7 +10,7 @@ from fastapi import FastAPI, Request
 from app.config import settings
 from app.db import init_models
 from app.logging_config import configure_logging, new_request_id, set_request_id
-from app.routers import audit, auth, consultas, health
+from app.routers import audit, auth, consultas, health, ui
 
 configure_logging()
 logger = logging.getLogger("app.request")
@@ -68,3 +68,4 @@ app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(consultas.router)
 app.include_router(audit.router)
+app.include_router(ui.router)

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Consulta {{ consulta.id if consulta else '' }}</title>
+  {% if consulta and consulta.status in ('pending', 'running') %}
+  <meta http-equiv="refresh" content="4">
+  {% endif %}
+  <style>
+    :root { --fg:#1c2530; --muted:#5b6673; --line:#dde3ea; --bg:#f6f8fa; --accent:#1e5fa8;
+            --alto:#b3261e; --medio:#a15c00; --bajo:#1e7a46; }
+    body { font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--fg);
+           margin:0; padding:2rem; background:#fff; line-height:1.5; }
+    .wrap { max-width:960px; margin:0 auto; }
+    h1 { font-size:1.4rem; margin:0 0 .5rem; }
+    .muted { color:var(--muted); }
+    a { color:var(--accent); }
+    .badge { display:inline-block; padding:.15rem .7rem; border-radius:999px; color:#fff; font-weight:700; }
+    .badge.pending { background:#6b7280; } .badge.running { background:#a15c00; }
+    .badge.done { background:var(--bajo); } .badge.error { background:var(--alto); }
+    .score { display:inline-block; padding:.15rem .7rem; border-radius:999px; color:#fff; font-weight:700; }
+    .score.alto { background:var(--alto); } .score.medio { background:var(--medio); } .score.bajo { background:var(--bajo); }
+    .meta { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:1rem 1.25rem; margin:1rem 0; }
+    .actions a { margin-right:1rem; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p><a href="/ui">&larr; Volver</a></p>
+  {% if not consulta %}
+    <h1>Consulta no disponible</h1>
+    <p class="muted">{{ error }}</p>
+  {% else %}
+    <h1>Consulta de {{ consulta.subject.nombre }} {{ consulta.subject.ape_paterno }} {{ consulta.subject.ape_materno }}</h1>
+    <p>Estado: <span class="badge {{ consulta.status }}">{{ consulta.status }}</span>
+       {% if consulta.status in ('pending','running') %}<span class="muted">· actualizando…</span>{% endif %}</p>
+
+    <div class="meta">
+      <div><b class="muted">Motivo:</b> {{ consulta.motivo }}</div>
+      <div><b class="muted">Solicitado por:</b> {{ consulta.requested_by }}</div>
+      <div><b class="muted">Competencias:</b> {{ consulta.params.get('competencias', []) | join(', ') }}
+           · Años {{ consulta.params.get('year_from','') }}–{{ consulta.params.get('year_to','') }}</div>
+    </div>
+
+    {% if consulta.status == 'done' %}
+      <p>Nivel de riesgo:
+        <span class="score {{ risk.level }}">{{ risk.level | upper }} ({{ risk.score }})</span>
+        · Causas: <strong>{{ risk.total }}</strong></p>
+      {% if risk.counts %}
+      <p class="muted">Distribución: {% for c, n in risk.counts.items() %}{{ c }}: {{ n }}{% if not loop.last %} · {% endif %}{% endfor %}</p>
+      {% endif %}
+      <p class="actions">
+        <a href="/consultas/{{ consulta.id }}/report" target="_blank">Ver informe HTML</a>
+        <a href="/consultas/{{ consulta.id }}" target="_blank">Ver JSON</a>
+      </p>
+    {% elif consulta.status == 'error' %}
+      <p class="muted">La consulta terminó con error: {{ consulta.error }}</p>
+    {% else %}
+      <p class="muted">Procesando la consulta… esta página se actualiza sola.</p>
+    {% endif %}
+  {% endif %}
+</div>
+</body>
+</html>

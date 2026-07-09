@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chapi Local — Due Diligence</title>
+  <style>
+    :root { --fg:#1c2530; --muted:#5b6673; --line:#dde3ea; --bg:#f6f8fa; --accent:#1e5fa8;
+            --alto:#b3261e; --medio:#a15c00; --bajo:#1e7a46; --err:#b3261e; --errbg:#fdecea; }
+    * { box-sizing:border-box; }
+    body { font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; color:var(--fg);
+           margin:0; padding:2rem; background:#fff; line-height:1.5; }
+    .wrap { max-width:960px; margin:0 auto; }
+    h1 { font-size:1.5rem; margin:0 0 .25rem; }
+    h2 { font-size:1.1rem; margin:2rem 0 .75rem; border-bottom:2px solid var(--line); padding-bottom:.35rem; }
+    .muted { color:var(--muted); }
+    form.card { background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:1.25rem; }
+    label { display:block; font-weight:600; font-size:.85rem; margin:.6rem 0 .2rem; }
+    input, select, textarea { width:100%; padding:.5rem; border:1px solid var(--line); border-radius:6px;
+                              font:inherit; background:#fff; }
+    .row { display:grid; grid-template-columns:1fr 1fr 1fr; gap:.75rem; }
+    .comps { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:.3rem; }
+    .comps label { display:flex; align-items:center; gap:.35rem; font-weight:400; margin:0; }
+    .comps input { width:auto; }
+    button { margin-top:1rem; background:var(--accent); color:#fff; border:0; border-radius:6px;
+             padding:.6rem 1.2rem; font-weight:700; cursor:pointer; }
+    .error { background:var(--errbg); border:1px solid #f3b4ad; color:var(--err); border-radius:8px;
+             padding:.75rem 1rem; margin:1rem 0; }
+    table { width:100%; border-collapse:collapse; font-size:.9rem; }
+    th, td { text-align:left; padding:.5rem .6rem; border-bottom:1px solid var(--line); }
+    th { background:var(--bg); color:var(--muted); font-weight:600; }
+    .badge { display:inline-block; padding:.1rem .55rem; border-radius:999px; color:#fff; font-size:.75rem; font-weight:700; }
+    .badge.pending { background:#6b7280; } .badge.running { background:#a15c00; }
+    .badge.done { background:var(--bajo); } .badge.error { background:var(--alto); }
+    a { color:var(--accent); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Due Diligence — nueva consulta</h1>
+  <p class="muted">Uso interno. Toda consulta requiere una <strong>finalidad legítima</strong>
+     (motivo) y queda auditada.</p>
+
+  {% if error %}<div class="error"><strong>No se pudo crear:</strong> {{ error }}</div>{% endif %}
+
+  <form class="card" method="post" action="/ui/consultas">
+    <label for="tipo">Tipo</label>
+    <select id="tipo" name="tipo">
+      <option value="persona" {% if form.get('tipo','persona')=='persona' %}selected{% endif %}>Persona</option>
+      <option value="empresa" {% if form.get('tipo')=='empresa' %}selected{% endif %}>Empresa</option>
+    </select>
+
+    <div class="row">
+      <div><label>Nombre / Razón social</label>
+        <input name="nombre" value="{{ form.get('nombre','') }}" placeholder="Nombre o razón social"></div>
+      <div><label>Apellido paterno</label>
+        <input name="ape_paterno" value="{{ form.get('ape_paterno','') }}"></div>
+      <div><label>Apellido materno</label>
+        <input name="ape_materno" value="{{ form.get('ape_materno','') }}"></div>
+    </div>
+    <div class="row">
+      <div><label>Razón social (empresa)</label>
+        <input name="razon_social" value="{{ form.get('razon_social','') }}"></div>
+      <div><label>RUT (opcional)</label>
+        <input name="rut" value="{{ form.get('rut','') }}" placeholder="12.345.678-9"></div>
+      <div><label>Solicitado por</label>
+        <input name="requested_by" value="{{ form.get('requested_by','') }}" required></div>
+    </div>
+
+    <label>Motivo (finalidad legítima, ≥10 caracteres)</label>
+    <textarea name="motivo" rows="2" required>{{ form.get('motivo','') }}</textarea>
+
+    <label>Competencias</label>
+    <div class="comps">
+      {% for c in competencias_all %}
+      <label><input type="checkbox" name="competencias" value="{{ c }}"
+        {% if not form.get('competencias') or c in form.get('competencias') %}checked{% endif %}> {{ c }}</label>
+      {% endfor %}
+    </div>
+
+    <div class="row">
+      <div><label>Año desde</label>
+        <input type="number" name="year_from" value="{{ form.get('year_from', default_year_from) }}"></div>
+      <div><label>Año hasta</label>
+        <input type="number" name="year_to" value="{{ form.get('year_to', default_year_to) }}"></div>
+      <div></div>
+    </div>
+
+    <button type="submit">Crear consulta</button>
+  </form>
+
+  <h2>Consultas recientes</h2>
+  {% if consultas %}
+  <table>
+    <thead><tr><th>Fecha</th><th>Sujeto</th><th>Estado</th><th>Nivel</th><th></th></tr></thead>
+    <tbody>
+      {% for q in consultas %}
+      <tr>
+        <td class="muted">{{ q.created_at.strftime('%Y-%m-%d %H:%M') if q.created_at else '' }}</td>
+        <td>{{ q.subject.nombre }} {{ q.subject.ape_paterno }} {{ q.subject.ape_materno }}</td>
+        <td><span class="badge {{ q.status }}">{{ q.status }}</span></td>
+        <td>{{ q.risk_level or '—' }}</td>
+        <td><a href="/ui/consultas/{{ q.id }}">ver</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Aún no hay consultas.</p>
+  {% endif %}
+</div>
+</body>
+</html>

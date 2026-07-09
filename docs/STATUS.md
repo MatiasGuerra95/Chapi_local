@@ -26,7 +26,8 @@ _Última actualización: 2026-07-09 · rama `main` · MVP mergeado (squash `de7c
 - `T-104`/`T-65`/`T-66` se difieren para acompañar el scraper real (Fase 2), donde tienen efecto real.
 
 ## Últimas tareas completadas
-- `T-223` **consulta de empresas** (validación por tipo + razón social→búsqueda), verificado E2E con mock (+6 tests)
+- `T-230` **UI mínima** (Jinja2 server-rendered: crear consulta + estado + informe), verificada E2E contra Postgres real
+- `T-223` **consulta de empresas** (validación por tipo + razón social→búsqueda), verificado E2E con mock
 - `T-220` **auth de usuarios** (User + pbkdf2 + JWT + RBAC + migración `b7decc69951e`), verificado E2E contra Postgres real
 - `T-221` **Alembic** + `T-222` **homónimos por RUT** (verificados contra Postgres real)
 - **Fix Docker**: `credsStore` roto en `~/.docker/config.json` + base Dockerfile → `python:3.12-slim-bookworm` (Playwright deps)

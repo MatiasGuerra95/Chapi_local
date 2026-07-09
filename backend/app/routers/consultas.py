@@ -12,18 +12,18 @@ from sqlalchemy.orm import selectinload
 from app import models, schemas
 from app.config import settings
 from app.db import get_session
-from app.logging_config import request_id_var
 from app.security import authorize
-from app.services import audit_service, embeddings_service, report_generator, risk_engine
+from app.services import (
+    audit_service,
+    consulta_service,
+    embeddings_service,
+    report_generator,
+    risk_engine,
+)
 
 router = APIRouter(
     prefix="/consultas", tags=["consultas"], dependencies=[Depends(authorize)]
 )
-
-
-def _sujeto_txt(subject: models.Subject) -> str:
-    nombre = f"{subject.nombre} {subject.ape_paterno} {subject.ape_materno}".strip()
-    return f"{nombre} (rut={subject.rut or 'N/D'})"
 
 
 async def _get_consulta(session: AsyncSession, consulta_id: uuid.UUID, with_cases: bool = False):
@@ -53,44 +53,8 @@ async def crear_consulta(
     principal: str = Depends(authorize),
 ):
     """Crea una consulta (con finalidad legítima), audita y encola el scraping."""
-    subject = models.Subject(**payload.subject.model_dump())
-    session.add(subject)
-    await session.flush()
-
-    params = {
-        "competencias": payload.competencias,
-        "year_from": payload.year_from,
-        "year_to": payload.year_to,
-    }
-    consulta = models.Consulta(
-        subject_id=subject.id,
-        requested_by=payload.requested_by,
-        motivo=payload.motivo,
-        fuente=settings.fuente,
-        params=params,
-        status="pending",
-    )
-    session.add(consulta)
-    await session.flush()
-
-    # T-105: reforzar la evidencia de finalidad legítima: además del motivo, se
-    # registra el principal autenticado y el request-id de correlación de la petición.
-    await audit_service.log_event(
-        session,
-        consulta_id=consulta.id,
-        usuario=payload.requested_by,
-        motivo=payload.motivo,
-        sujeto=_sujeto_txt(subject),
-        fuente=settings.fuente,
-        action="consulta_creada",
-        params={**params, "principal": principal, "request_id": request_id_var.get()},
-    )
-    await session.commit()
-
-    pool = getattr(request.app.state, "arq_pool", None)
-    if pool is not None:
-        await pool.enqueue_job("run_consulta", str(consulta.id))
-
+    consulta = await consulta_service.create_consulta(session, payload, principal)
+    await consulta_service.enqueue(request.app, consulta.id)
     return await _get_consulta(session, consulta.id)
 
 
@@ -174,7 +138,7 @@ async def generar_informe(consulta_id: str, session: AsyncSession = Depends(get_
         consulta_id=consulta.id,
         usuario=consulta.requested_by,
         motivo=consulta.motivo,
-        sujeto=_sujeto_txt(consulta.subject),
+        sujeto=consulta_service.sujeto_txt(consulta.subject),
         fuente=consulta.fuente,
         action="informe_generado",
         params={"score": risk["score"], "level": risk["level"], "total": risk["total"]},

@@ -128,7 +128,7 @@
 - [x] 🔒 **T-223** Consulta de **empresas** (RD-01): `SubjectIn` valida por tipo (persona requiere nombre; empresa requiere `razon_social`, que se enruta a `nombre` para la búsqueda). Verificado E2E con mock (consulta empresa → `done` + informe con razón social). Nota: el flujo real por razón social en la OJV se confirma junto a T-200/T-205.
 
 ### F2.D · Producto y operación
-- [ ] 🔒 **T-230** UI mínima para reclutadores (crear consulta, ver estado/informe).
+- [x] 🔒 **T-230** UI mínima server-rendered (Jinja2): `GET /ui` (form + consultas recientes), `POST /ui/consultas` (reutiliza `consulta_service` → motivo+auditoría), `GET /ui/consultas/{id}` (estado con auto-refresh + enlace al informe). Verificada E2E contra Postgres real.
 - [ ] 🔒 **T-231** Exportar informe a **PDF**.
 - [ ] 🔒 **T-232** Observabilidad (métricas, dashboards, alertas).
 - [ ] 🔒 **T-233** Evaluar fuentes adicionales (Boletín Comercial, inhabilidades, etc.).
