@@ -6,6 +6,7 @@ persiste causas normalizadas en Postgres, calcula el score y audita cada paso.
 from __future__ import annotations
 
 import json
+import logging
 import uuid
 from datetime import datetime
 from pathlib import Path
@@ -15,8 +16,11 @@ from arq.connections import RedisSettings
 from app import models
 from app.config import settings
 from app.db import SessionLocal, init_models
+from app.logging_config import configure_logging, set_job_id
 from app.services import audit_service, risk_engine
 from app.services.pjud_scraper import get_scraper, persona_slug
+
+logger = logging.getLogger("app.worker")
 
 
 def _sujeto(subject: models.Subject) -> str:
@@ -26,6 +30,9 @@ def _sujeto(subject: models.Subject) -> str:
 
 async def run_consulta(ctx, consulta_id: str):
     cid = uuid.UUID(consulta_id)
+    # Correlación: usa el job_id de arq; si se invoca directo (tests), el consulta_id.
+    set_job_id(str(ctx.get("job_id") or consulta_id))
+    logger.info("run_consulta_start", extra={"consulta_id": consulta_id})
 
     async with SessionLocal() as session:
         consulta = await session.get(models.Consulta, cid)
@@ -116,9 +123,15 @@ async def run_consulta(ctx, consulta_id: str):
                 params={"total": risk["total"], "score": risk["score"], "level": risk["level"]},
             )
             await session.commit()
+            logger.info(
+                "run_consulta_done",
+                extra={"consulta_id": consulta_id, "total": risk["total"],
+                       "score": risk["score"], "level": risk["level"]},
+            )
             return {"status": "done", "total": risk["total"], "score": risk["score"]}
 
         except Exception as exc:  # noqa: BLE001
+            logger.exception("run_consulta_error", extra={"consulta_id": consulta_id})
             await session.rollback()
             consulta = await session.get(models.Consulta, cid)
             consulta.status = "error"
@@ -139,6 +152,7 @@ async def run_consulta(ctx, consulta_id: str):
 
 
 async def _startup(ctx):
+    configure_logging()
     await init_models()
 
 

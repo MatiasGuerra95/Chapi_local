@@ -36,7 +36,7 @@
 ## M2 · Dominio y persistencia
 - [x] **T-20** Modelos SQLAlchemy: `Subject`, `Consulta`, `CaseResult`, `AuditLog`, `Report` (RD-01…RD-05).
 - [x] **T-21** JSONB para `params`/`litigantes`/`relaciones` (RD-06).
-- [ ] **T-22** Índices para acceso frecuente: `case_results.consulta_id`, `consultas.created_at`, `audit_logs.consulta_id` (rendimiento).
+- [x] **T-22** Índices para acceso frecuente: `case_results.consulta_id`, `consultas.created_at`, `audit_logs.consulta_id` (`index=True` en modelos; se crean vía `create_all`) (rendimiento).
 - [ ] **T-23** Resolver colisión del JSON por persona: `results/{slug}.json` se **sobrescribe** al re-consultar a la misma persona → decidir namespacing por `consulta_id`/timestamp o versionado (RF-05, RNF-10). ⚠️
 
 ## M3 · Schemas y validación (compliance de entrada)
@@ -52,7 +52,7 @@
 - [x] **T-43** `GET /consultas/{id}/report` (HTML) (RF-08).
 - [x] **T-44** `GET /audit` con filtro por consulta (RF-12).
 - [ ] **T-45** Paginación/límite en listados de consultas y auditoría (escalabilidad).
-- [ ] **T-46** Readiness check que verifique conectividad a DB y Redis (además del liveness) (RNF-07).
+- [x] **T-46** Readiness check `GET /health/ready` que verifica DB (`SELECT 1`) y Redis (`arq_pool.ping()`): 200 si ambos ok, 503 con detalle por componente (RNF-07).
 
 ## M5 · Servicios
 - [x] **T-50** Interfaz `PjudScraper` (Protocol) + factory `get_scraper()` (RF-14, DD-04).
@@ -100,7 +100,7 @@
 - [ ] **T-100** Revisión legal: base de licitud del tratamiento y **Términos de Uso** de la OJV/PJUD para scraping automatizado (RC-05). ⚠️
 - [ ] **T-101** Política de **retención y eliminación** de datos personales (Ley 19.628 / Ley 21.719): plazos, borrado, propósito limitado.
 - [ ] **T-102** Control de acceso y minimización: quién puede crear consultas y ver resultados/informes.
-- [ ] **T-103** Logging estructurado con correlación (request id / job id) para trazabilidad técnica.
+- [x] **T-103** Logging estructurado JSON con correlación (`request_id` en API vía middleware + header `X-Request-ID`; `job_id` de arq en el worker) para trazabilidad técnica. *(`app/logging_config.py`)*
 - [ ] **T-104** Rate limiting y "politeness" hacia la fuente (throttling/backoff) — prerequisito del scraper real.
 - [ ] **T-105** Reforzar registro de propósito por consulta (evidencia de finalidad legítima) (RC-01, RC-05).
 

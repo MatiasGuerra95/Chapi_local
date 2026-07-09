@@ -47,7 +47,9 @@ class Consulta(Base):
     risk_level: Mapped[str | None] = mapped_column(String(16), nullable=True)
     results_json_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), index=True
+    )
     started_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
@@ -66,7 +68,7 @@ class CaseResult(Base):
     __tablename__ = "case_results"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    consulta_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("consultas.id"))
+    consulta_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("consultas.id"), index=True)
 
     competencia: Mapped[str | None] = mapped_column(String(32), nullable=True)
     rit: Mapped[str | None] = mapped_column(String(64), nullable=True)
@@ -94,7 +96,7 @@ class AuditLog(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     consulta_id: Mapped[uuid.UUID | None] = mapped_column(
-        ForeignKey("consultas.id"), nullable=True
+        ForeignKey("consultas.id"), nullable=True, index=True
     )
     usuario: Mapped[str] = mapped_column(String(200))
     motivo: Mapped[str | None] = mapped_column(Text, nullable=True)
