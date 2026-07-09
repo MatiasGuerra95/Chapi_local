@@ -18,11 +18,31 @@ _MOTIVOS_TRIVIALES = {
 
 class SubjectIn(BaseModel):
     tipo: str = "persona"
-    nombre: str = Field(min_length=1)
-    ape_paterno: str = Field(default="", min_length=0)
+    nombre: str = ""
+    ape_paterno: str = ""
     ape_materno: str = ""
     rut: Optional[str] = None
     razon_social: Optional[str] = None
+
+    @field_validator("tipo")
+    @classmethod
+    def _tipo_valido(cls, v: str) -> str:
+        if v not in ("persona", "empresa"):
+            raise ValueError("tipo debe ser 'persona' o 'empresa'.")
+        return v
+
+    @model_validator(mode="after")
+    def _coherencia_por_tipo(self):
+        # T-223: empresa se busca por razón social; persona requiere nombre.
+        if self.tipo == "empresa":
+            rs = (self.razon_social or "").strip()
+            if len(rs) < 3:
+                raise ValueError("Para una empresa, 'razon_social' es obligatoria.")
+            if not self.nombre.strip():
+                self.nombre = rs  # el flujo de búsqueda por nombre usa 'nombre'
+        elif not self.nombre.strip():
+            raise ValueError("Para una persona, 'nombre' es obligatorio.")
+        return self
 
 
 class ConsultaCreate(BaseModel):

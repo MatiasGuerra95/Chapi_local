@@ -125,7 +125,7 @@
 - [x] 🔒 **T-220** Auth de usuarios internos (reemplaza DD-05): modelo `User`, hashing pbkdf2 (stdlib) + JWT (PyJWT), router `/auth` (token/me/users con RBAC admin), gate unificado `authorize` (JWT si `AUTH_ENABLED`, si no API key de T-102), `scripts/create_user.py` y migración Alembic `b7decc69951e`. Verificado E2E contra Postgres real (+8 unit, +1 integración).
 - [x] 🔒 **T-221** Migraciones con **Alembic** (async env.py + `alembic.ini` + migración inicial `6cb55646f788`). `create_all` sigue de default en dev/tests; en prod `AUTO_CREATE_TABLES=false` + `alembic upgrade head`. Verificado: autogenerate + upgrade/downgrade round-trip contra Postgres real.
 - [ ] 🔒 **T-222** **Desambiguación de homónimos por RUT hecha** (RC-04): `rut_utils` normaliza RUT y, si el sujeto tiene RUT y una causa lo lista entre sus litigantes, el worker desmarca `possible_homonym` (+7 tests). **Pendiente**: consulta por RUT como *input* de búsqueda (flujo distinto en la OJV).
-- [ ] 🔒 **T-223** Consulta de **empresas** (razón social/RUT) (RD-01).
+- [x] 🔒 **T-223** Consulta de **empresas** (RD-01): `SubjectIn` valida por tipo (persona requiere nombre; empresa requiere `razon_social`, que se enruta a `nombre` para la búsqueda). Verificado E2E con mock (consulta empresa → `done` + informe con razón social). Nota: el flujo real por razón social en la OJV se confirma junto a T-200/T-205.
 
 ### F2.D · Producto y operación
 - [ ] 🔒 **T-230** UI mínima para reclutadores (crear consulta, ver estado/informe).
