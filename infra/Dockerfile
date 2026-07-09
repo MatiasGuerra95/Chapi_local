@@ -1,4 +1,7 @@
-FROM python:3.12-slim
+# bookworm (no trixie): Playwright 1.43 reconoce Debian 12 y usa el listado de
+# dependencias correcto para `--with-deps`. En trixie cae a un fallback de Ubuntu
+# 20.04 que referencia paquetes de fuentes inexistentes (ttf-unifont/…) y falla.
+FROM python:3.12-slim-bookworm
 
 # Dependencias del sistema base
 RUN apt-get update \
