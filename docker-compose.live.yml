@@ -1,0 +1,23 @@
+# Overlay para VALIDACIÓN EN VIVO del scraper real contra la OJV (T-200 / T-205).
+#
+# No modifica el arranque normal (`docker compose up` sigue en modo mock). Se activa
+# explícitamente superponiendo este archivo:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.live.yml up --build
+#
+# Efectos:
+#   - Construye la imagen del WORKER con Chromium (INSTALL_BROWSERS=true).
+#   - Desactiva el mock SÓLO en el worker (es quien ejecuta el scraper).
+#   - La API no scrapea: mantiene la imagen liviana (sin Chromium).
+#
+# ⚠️ Requisito de compliance: sólo usar con el gate legal levantado (T-100) y con
+# los parámetros de politeness (T-104) acordes a los límites de la fuente.
+services:
+  worker:
+    build:
+      args:
+        INSTALL_BROWSERS: "true"
+    environment:
+      USE_MOCK_SCRAPER: "false"
+      # Headless real dentro del contenedor.
+      SCRAPER_HEADLESS: "true"

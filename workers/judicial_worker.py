@@ -160,3 +160,6 @@ class WorkerSettings:
     functions = [run_consulta]
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
     on_startup = _startup
+    # El scraper real puede tardar (muchos tribunales × años); evita que arq
+    # mate el job a los 300 s por defecto (part. de T-65).
+    job_timeout = settings.arq_job_timeout_seconds

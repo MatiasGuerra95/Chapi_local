@@ -32,6 +32,10 @@ class Settings(BaseSettings):
         "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
     )
     scraper_detail_timeout_ms: int = 10000
+    scraper_headless: bool = True
+
+    # arq: el scraper real es lento; sube el timeout del job (part. de T-65).
+    arq_job_timeout_seconds: int = 1800
 
     # Rango de años por defecto (configurable por consulta)
     default_year_from: int = 2018

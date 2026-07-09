@@ -18,6 +18,7 @@ RUN if [ "$INSTALL_BROWSERS" = "true" ]; then playwright install --with-deps chr
 WORKDIR /app
 COPY backend /app/backend
 COPY workers /app/workers
+COPY scripts /app/scripts
 
 ENV PYTHONPATH=/app/backend:/app
 ENV PYTHONUNBUFFERED=1

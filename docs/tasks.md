@@ -68,7 +68,7 @@
 - [x] **T-62** Persistencia normalizada de causas (RF-06).
 - [x] **T-63** Cálculo de score y cierre de la consulta (RF-07).
 - [x] **T-64** Manejo de errores → estado `error` + auditoría (RNF-07).
-- [ ] **T-65** Configurar `job_timeout` y reintentos de arq (el scraper real es lento: espera hasta ~45 s por tabla) (RNF-03). ⚠️
+- [ ] **T-65** `job_timeout` de arq **hecho** (`ARQ_JOB_TIMEOUT_SECONDS`, default 1800 s, en `WorkerSettings`); falta afinar la política de **reintentos** (`max_tries`) acorde a politeness (RNF-03). ⚠️
 - [ ] **T-66** Commit incremental/por lotes de `CaseResult` (hoy es una transacción única para todo el scrape; con el scraper real será enorme y de larga duración) (RF-06). ⚠️
 
 ## M7 · Infraestructura
@@ -114,7 +114,7 @@
 - [x] 🔒 **T-202** Parseo de `litigantes`/`relaciones` por competencia con selectores por sufijo (`COMPETENCIA_SUFIJO`; Pen/Lab confirmados) + tests (`tests/test_pjud_parsers.py`).
 - [ ] 🔒 **T-203** Manejo de sesión/JWT para el detalle vía POST (referencia `detalle.py`). El path por modal (`toggle-modal`) no lo requiere; pendiente sólo si algún detalle exige POST con token. ⚠️ requiere sitio en vivo.
 - [x] 🔒 **T-204** Robustez: `retry_async` (backoff) en la búsqueda, user-agent configurable, apertura de detalle tolerante a fallos, politeness (T-104). Tolerancia a cambios de DOM: pendiente afinar con el sitio vivo.
-- [ ] 🔒 **T-205** Activar por config (`USE_MOCK_SCRAPER=false`) y validar contra un entorno de prueba. ⚠️ requiere sitio en vivo.
+- [ ] 🔒 **T-205** Activar por config (`USE_MOCK_SCRAPER=false`) y validar contra un entorno de prueba. **Infra lista**: overlay `docker-compose.live.yml` (worker con Chromium), `scripts/inspect_ojv.py` (T-200), `scripts/validate_live.py` y runbook `scripts/README-live-validation.md`. Chromium con `--no-sandbox`, `job_timeout` subido. ⚠️ falta la corrida en vivo (la ejecutas tú).
 
 ### F2.B · LLM y búsqueda semántica
 - [ ] 🔒 **T-210** Integrar resumen de fallos con llama-cpp en `nlp_service` (instalar `requirements-ml.txt`).

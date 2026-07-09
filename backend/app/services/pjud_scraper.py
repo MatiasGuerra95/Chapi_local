@@ -244,7 +244,12 @@ class PlaywrightPjudScraper:
         from playwright.async_api import async_playwright  # import perezoso
 
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=not self.debug)
+            # --no-sandbox / --disable-dev-shm-usage: necesarios para chromium
+            # headless dentro de contenedores (validación en vivo, T-205).
+            browser = await p.chromium.launch(
+                headless=settings.scraper_headless and not self.debug,
+                args=["--no-sandbox", "--disable-dev-shm-usage"],
+            )
             # Robustez (T-204): user-agent configurable para el contexto.
             ctx = await browser.new_context(user_agent=settings.scraper_user_agent)
             page = await ctx.new_page()
