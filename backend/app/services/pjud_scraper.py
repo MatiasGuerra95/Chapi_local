@@ -11,8 +11,8 @@ import hashlib
 import re
 from typing import AsyncIterator, Protocol, TypedDict, runtime_checkable
 
-from app.config import COMPETENCIAS, settings
-from app.services.throttle import RateLimiter
+from app.config import COMPETENCIA_SUFIJO, COMPETENCIAS, settings
+from app.services.throttle import RateLimiter, retry_async
 
 
 class CaseRecord(TypedDict, total=False):
@@ -193,6 +193,30 @@ async def _wait_tabla(page, timeout_ms: int = 15000) -> bool:
     return False
 
 
+async def _abrir_detalle(page, tr, comp_suffix: str, timeout_ms: int = 10000):
+    """Abre el modal de detalle de una fila y devuelve (litigantes, relaciones).
+
+    Portado de crawler_nom.py: click en ``a.toggle-modal`` → espera ``.modal.show``
+    → parsea las tablas ``#litigantes{suf}`` / ``#relaciones{suf}`` → cierra el modal.
+    Tolerante a fallos: si el modal no abre o no hay enlace, devuelve listas vacías.
+    """
+    link = await tr.query_selector("a.toggle-modal")
+    if link is None:
+        return [], []
+    try:
+        await link.click()
+        await page.wait_for_selector(".modal.show", timeout=timeout_ms)
+        modal_html = await page.inner_html(".modal.show")
+        litigantes = _parse_litigantes(modal_html, comp_suffix)
+        relaciones = _parse_relaciones(modal_html, comp_suffix)
+        await page.keyboard.press("Escape")
+        await page.wait_for_selector(".modal.show", state="detached", timeout=timeout_ms)
+        return litigantes, relaciones
+    except Exception:
+        # Robustez (T-204): un detalle que falla no aborta el scrape de la persona.
+        return [], []
+
+
 class PlaywrightPjudScraper:
     """Scraper real (skeleton) contra la OJV. Reemplaza al mock en fase 2."""
 
@@ -204,6 +228,9 @@ class PlaywrightPjudScraper:
         self._limiter = RateLimiter(
             settings.scraper_min_delay_seconds, settings.scraper_jitter_seconds
         )
+        self._retries = settings.scraper_max_retries
+        self._backoff = settings.scraper_backoff_base_seconds
+        self._detail_timeout = settings.scraper_detail_timeout_ms
 
     async def scan_persona(
         self,
@@ -218,7 +245,8 @@ class PlaywrightPjudScraper:
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=not self.debug)
-            ctx = await browser.new_context()
+            # Robustez (T-204): user-agent configurable para el contexto.
+            ctx = await browser.new_context(user_agent=settings.scraper_user_agent)
             page = await ctx.new_page()
             await page.goto(f"{self.BASE}/home/index.php")
             page = await _abrir_consulta(page)
@@ -228,6 +256,7 @@ class PlaywrightPjudScraper:
                 if not comp_val:
                     continue
                 # TODO(fase-2): verificar value real de Civil/Cobranza en #nomCompetencia.
+                suffix = COMPETENCIA_SUFIJO.get(comp_nom, "")
                 await page.select_option("#nomCompetencia", comp_val)
                 await page.select_option("#corteNom", "0")
                 await page.wait_for_selector("#nomTribunal")
@@ -246,8 +275,19 @@ class PlaywrightPjudScraper:
                         await page.fill("#nomEra", str(yr))
                         # Politeness: respeta el intervalo mínimo antes de cada búsqueda.
                         await self._limiter.acquire()
-                        await page.click("#btnConConsultaNom")
-                        if not await _wait_tabla(page):
+
+                        # Robustez (T-204): reintenta la búsqueda ante fallos transitorios.
+                        async def _buscar():
+                            await page.click("#btnConConsultaNom")
+                            return await _wait_tabla(page)
+
+                        try:
+                            hay_filas = await retry_async(
+                                _buscar, retries=self._retries, base_delay=self._backoff
+                            )
+                        except Exception:
+                            continue
+                        if not hay_filas:
                             continue
 
                         filas = await page.query_selector_all(
@@ -257,6 +297,9 @@ class PlaywrightPjudScraper:
                             tds = await tr.query_selector_all("td")
                             if len(tds) < 7:
                                 continue
+                            litigantes, relaciones = await _abrir_detalle(
+                                page, tr, suffix, self._detail_timeout
+                            )
                             rec: CaseRecord = {
                                 "competencia": comp_nom,
                                 "rit": await tds[1].inner_text(),
@@ -266,15 +309,13 @@ class PlaywrightPjudScraper:
                                 "fecha_ingreso": await tds[5].inner_text(),
                                 "estado": await tds[6].inner_text(),
                                 "year": yr,
-                                "litigantes": [],
-                                "relaciones": [],
+                                "litigantes": litigantes,
+                                "relaciones": relaciones,
                                 # Búsqueda por nombre => marcar posible homónimo hasta
                                 # confirmar por RUT.
                                 "possible_homonym": True,
                                 "source_url": f"{self.BASE}/",
                             }
-                            # TODO(fase-2): abrir modal de detalle por competencia y
-                            # poblar litigantes/relaciones con _parse_litigantes/_parse_relaciones.
                             yield rec
 
             await browser.close()

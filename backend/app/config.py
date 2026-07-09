@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     scraper_jitter_seconds: float = 0.5
     scraper_max_retries: int = 3
     scraper_backoff_base_seconds: float = 1.0
+    scraper_user_agent: str = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    )
+    scraper_detail_timeout_ms: int = 10000
 
     # Rango de años por defecto (configurable por consulta)
     default_year_from: int = 2018
@@ -51,3 +56,13 @@ COMPETENCIAS: dict[str, str] = {
 }
 
 DEFAULT_COMPETENCIAS: list[str] = list(COMPETENCIAS.keys())
+
+# Sufijo de los ids de tabla en el modal de detalle por competencia
+# (p.ej. #litigantesPen / #relacionesPen). Pen (crawler_nom.py) y Lab (detalle.py)
+# están confirmados; Civ y Cob deben verificarse contra el DOM vivo (T-202).
+COMPETENCIA_SUFIJO: dict[str, str] = {
+    "Penal": "Pen",     # confirmado
+    "Laboral": "Lab",   # confirmado
+    "Civil": "Civ",     # TODO(fase-2): verificar sufijo real del modal
+    "Cobranza": "Cob",  # TODO(fase-2): verificar sufijo real del modal
+}

@@ -109,12 +109,12 @@
 ## Fase 2 🔒
 
 ### F2.A · Scraper real (Playwright)
-- [ ] 🔒 **T-200** Verificar los `value` de competencia **Civil** y **Cobranza** en `#nomCompetencia` (DOM vivo) (RNF-08).
-- [ ] 🔒 **T-201** Implementar los TODO de `PlaywrightPjudScraper` (navegación completa + apertura de modales de detalle).
-- [ ] 🔒 **T-202** Parseo de `litigantes`/`relaciones` por competencia (selectores por sufijo).
-- [ ] 🔒 **T-203** Manejo de sesión/JWT para el detalle (referencia `detalle.py`).
-- [ ] 🔒 **T-204** Robustez: esperas, reintentos, rotación de user-agent, tolerancia a cambios de DOM.
-- [ ] 🔒 **T-205** Activar por config (`USE_MOCK_SCRAPER=false`) y validar contra un entorno de prueba.
+- [ ] 🔒 **T-200** Verificar los `value` de competencia **Civil** y **Cobranza** en `#nomCompetencia` y los **sufijos** de tabla del modal (`Civ`/`Cob`) (DOM vivo) (RNF-08). ⚠️ requiere sitio en vivo.
+- [x] 🔒 **T-201** TODO de `PlaywrightPjudScraper` implementados: user-agent, apertura del modal de detalle por fila (`a.toggle-modal` → `.modal.show`) y poblado de litigantes/relaciones.
+- [x] 🔒 **T-202** Parseo de `litigantes`/`relaciones` por competencia con selectores por sufijo (`COMPETENCIA_SUFIJO`; Pen/Lab confirmados) + tests (`tests/test_pjud_parsers.py`).
+- [ ] 🔒 **T-203** Manejo de sesión/JWT para el detalle vía POST (referencia `detalle.py`). El path por modal (`toggle-modal`) no lo requiere; pendiente sólo si algún detalle exige POST con token. ⚠️ requiere sitio en vivo.
+- [x] 🔒 **T-204** Robustez: `retry_async` (backoff) en la búsqueda, user-agent configurable, apertura de detalle tolerante a fallos, politeness (T-104). Tolerancia a cambios de DOM: pendiente afinar con el sitio vivo.
+- [ ] 🔒 **T-205** Activar por config (`USE_MOCK_SCRAPER=false`) y validar contra un entorno de prueba. ⚠️ requiere sitio en vivo.
 
 ### F2.B · LLM y búsqueda semántica
 - [ ] 🔒 **T-210** Integrar resumen de fallos con llama-cpp en `nlp_service` (instalar `requirements-ml.txt`).
