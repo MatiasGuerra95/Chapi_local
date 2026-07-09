@@ -8,7 +8,9 @@ services:
     volumes:
       - dbdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pguser}"]
+      # -d evita el FATAL cosmético "database pguser does not exist": sin -d,
+      # pg_isready intenta una base con el nombre del usuario (que no existe).
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pguser} -d ${POSTGRES_DB:-chapi}"]
       interval: 5s
       timeout: 3s
       retries: 10
