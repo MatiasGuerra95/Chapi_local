@@ -1,12 +1,21 @@
 # Política de retención y eliminación de datos personales — Chapi Local
 
-> **Estado: BORRADOR — requiere validación legal (T-101).**
-> Este documento propone una política y deja marcados los puntos que requieren
-> una **decisión de negocio/legal** (`⚠️ DECISIÓN REQUERIDA`). No constituye
-> asesoría legal.
+> **Estado: APROBADO — decisiones adoptadas por el responsable (product owner) el 2026-07-09.**
+> Registra la política aprobada. **No constituye asesoría legal**; debe mantenerse
+> alineada con el área legal y revisarse al entrar en vigor la Ley 21.719.
 >
 > _Fecha: 2026-07-09 · Marco: Ley 19.628 (protección de la vida privada) y_
 > _Ley 21.719 (protección de datos personales, Chile)._
+
+## 0. Decisiones adoptadas (2026-07-09)
+
+| # | Punto | Decisión |
+|---|-------|----------|
+| §4 | Plazos de retención | **Se adoptan los plazos propuestos**: 6 meses para no contratados; contratados = duración de la relación + plazo legal laboral aplicable; derivados (JSON/informes) siguen a su consulta. |
+| §5 | Auditoría vs. supresión | **Se adopta**: no se borran filas de auditoría; al vencer la retención se **eliminan/seudonimizan** los datos personales sustantivos y se conserva la evidencia mínima del tratamiento. |
+
+> Pendiente de implementación técnica (no bloqueante): `RETENTION_DAYS` + tarea de
+> purga que respete §5/§6. Ver [`legal-basis-and-tos.md`](./legal-basis-and-tos.md) §0.
 
 ## 1. Objeto y alcance
 
@@ -43,8 +52,7 @@ de resultados, informes y auditoría.
 
 ## 4. Plazos de retención propuestos
 
-⚠️ **DECISIÓN REQUERIDA** — los plazos siguientes son una **propuesta por defecto**
-que legal/negocio deben confirmar según la base de licitud y la práctica de RRHH.
+✅ **ADOPTADO (§0)** — los plazos siguientes fueron **aprobados** por el responsable.
 
 | Categoría | Plazo propuesto (por defecto) | Fundamento |
 |-----------|-------------------------------|------------|
@@ -67,8 +75,9 @@ de supresión del titular. Propuesta a validar:
   (sujeto, causas, JSON, informe) y **conservar** en auditoría sólo la evidencia
   mínima del tratamiento (fecha, acción, usuario, finalidad), **seudonimizando** el
   snapshot del sujeto si legal lo exige.
-- ⚠️ **DECISIÓN REQUERIDA**: ¿la auditoría puede seudonimizar el nombre del sujeto
-  al vencer la retención, o debe conservarse íntegra por un deber probatorio?
+- ✅ **ADOPTADO (§0)**: al vencer la retención, la auditoría **seudonimiza** el
+  snapshot del sujeto y conserva la evidencia mínima del tratamiento (no se borran
+  filas). Revisable si un deber probatorio específico exigiera lo contrario.
 
 ## 6. Procedimiento de eliminación
 
