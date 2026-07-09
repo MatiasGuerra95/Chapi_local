@@ -3,6 +3,7 @@ uvicorn[standard]==0.29.*
 playwright==1.43.*
 asyncpg==0.29.*
 sqlalchemy==2.0.*
+alembic==1.13.*
 arq>=0.25,<1.0
 jinja2==3.*
 pydantic-settings==2.*

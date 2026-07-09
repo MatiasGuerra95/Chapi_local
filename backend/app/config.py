@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     # definido => exige la clave en los endpoints de negocio. Auth por usuario: fase 2.
     api_key: str = ""
 
+    # Esquema: create_all al arranque (MVP/dev/tests). En producción, poner en false
+    # y gestionar el esquema con Alembic (T-221).
+    auto_create_tables: bool = True
+
     # Scraper
     use_mock_scraper: bool = True
     results_dir: str = "results"

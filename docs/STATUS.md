@@ -6,13 +6,13 @@ _Última actualización: 2026-07-09 · rama `main` · MVP mergeado (squash `de7c
 > Backlog completo con checkboxes en [`tasks.md`](./tasks.md).
 
 ## ¿Dónde nos quedamos?
-**M10 cerrado**; **Fase 2 F2.A** (scraper real + infra de validación en vivo) y **F2.B** (NLP + búsqueda semántica) implementadas en `main`. NLP `T-210` (síntesis mock + skeleton llama-cpp), embeddings `T-211` (mock + overlay pgvector) y endpoint semántico `T-212` (`/consultas/{id}/similar`). Verificado: ruff ✅ + import ✅ + pytest **51 passed / 1 skipped**.
+**M10 cerrado**; Fase 2 **F2.A** (scraper real + infra live), **F2.B** (NLP + semántica) y parte de **F2.C** en `main`. F2.C: `T-222` desambiguación de homónimos por RUT y `T-221` **Alembic** (async, migración inicial verificada contra Postgres real + integración E2E). `create_all` sigue de default; prod usa `AUTO_CREATE_TABLES=false` + `alembic upgrade head`. Verificado: ruff ✅ + pytest **66 passed / 1 skipped** (integración pasa contra Postgres real).
 
 ## Ahora / próximo
-- **Docker arreglado**: `~/.docker/config.json` tenía `credsStore: desktop.exe` roto (WSL) → removido (backup en `config.json.bak`). El build ya resuelve imágenes públicas.
-- **Corrida en vivo (tú)** con `scripts/README-live-validation.md`: `inspect_ojv.py` → cerrar `T-200`; `validate_live.py` → cerrar `T-205`; `T-203` si algún detalle usa POST/JWT.
-- **Pendiente F2.B**: columna/índice pgvector persistente entre consultas (requiere ML stack corriendo, `requirements-ml.txt` + overlay pgvector).
-- Luego F2.C (auth/Alembic/RUT/empresas) o F2.D (UI/PDF/observabilidad).
+- **Docker arreglado** (2 fixes): `credsStore: desktop.exe` roto removido de `~/.docker/config.json`; base del Dockerfile fijada a `python:3.12-slim-bookworm` (Playwright deps). Ya puedes `docker compose -f docker-compose.yml -f docker-compose.live.yml up --build`.
+- **Corrida en vivo (tú)** con `scripts/README-live-validation.md`: `inspect_ojv.py` → `T-200`; `validate_live.py` → `T-205`; `T-203` si algún detalle usa POST/JWT.
+- **F2.C restante**: `T-220` auth/RBAC de usuarios internos (reemplaza DD-05, hoy hay API key) y `T-223` consulta de **empresas** — piezas grandes.
+- **Pendiente F2.B**: store pgvector persistente entre consultas (requiere ML stack).
 - ⚠️ `.gitignore` local mantiene `/docs` — nuevos docs con `git add -f`.
 
 ## Progreso (detalle en tasks.md)
@@ -20,16 +20,16 @@ _Última actualización: 2026-07-09 · rama `main` · MVP mergeado (squash `de7c
 - Pruebas (M8): 🟢 unit + integración (pytest+Postgres) ✅ · E2E app-level ✅ · smoke full-stack docker ✅
 - Entrega (M9): 🟢 **mergeado a main** (squash `de7cb59`)
 - Compliance operativo (M10): ✅ **cerrado** — código `T-22`/`T-46`/`T-102`/`T-103`/`T-104`/`T-105` + legal `T-100`/`T-101`
-- Fase 2: 🟡 **F2.A** código + infra de validación (`T-201/202/204`; live pendiente `T-200/203/205`) · **F2.B** `T-210`/`T-212` ✅, `T-211` embeddings+overlay ✅ (store pgvector persistente pendiente) · F2.C/D no iniciadas
+- Fase 2: 🟡 **F2.A** (`T-201/202/204`; live pendiente `T-200/203/205`) · **F2.B** `T-210`/`T-212` ✅, `T-211` embeddings+overlay ✅ (store pgvector pendiente) · **F2.C** `T-221` Alembic ✅ + `T-222` RUT-homónimos ✅; `T-220` auth y `T-223` empresas pendientes · F2.D no iniciada
 
 ## Bloqueos / decisiones abiertas
 - ⚠️ `T-23` colisión del JSON por persona · `T-100` revisión legal ToS PJUD · `T-101` retención de datos.
 - `T-104`/`T-65`/`T-66` se difieren para acompañar el scraper real (Fase 2), donde tienen efecto real.
 
 ## Últimas tareas completadas
-- `T-210`/`T-211`/`T-212` **Fase 2 F2.B**: síntesis NLP en el informe, `embeddings_service` (mock+skeleton), endpoint `/similar` y overlay pgvector (+11 tests)
-- **Fix Docker** WSL: `credsStore: desktop.exe` roto removido de `~/.docker/config.json`
-- **Infra de validación en vivo**: overlay `docker-compose.live.yml` (worker+Chromium), `scripts/inspect_ojv.py`/`validate_live.py` + runbook; `job_timeout` arq (T-65 parcial)
+- `T-221` **Alembic** (async env.py + migración inicial verificada contra Postgres real) + `T-222` **desambiguación de homónimos por RUT** (+22 tests)
+- **Fix Docker**: `credsStore` roto en `~/.docker/config.json` + base Dockerfile → `python:3.12-slim-bookworm` (Playwright deps)
+- `T-210`/`T-211`/`T-212` **Fase 2 F2.B**: síntesis NLP, `embeddings_service`, endpoint `/similar` y overlay pgvector
 - `T-201`/`T-202`/`T-204` **Fase 2 F2.A**: scraper real abre modal de detalle, parsea litigantes/relaciones por sufijo, robustez (retry/user-agent) (+6 tests)
 - `T-100`/`T-101` **revisión legal cerrada** (decisiones del responsable, `ff8b8c0`)
 - `T-104` **politeness/rate limiting** (`RateLimiter` + `retry_async`, `6126ff2`)

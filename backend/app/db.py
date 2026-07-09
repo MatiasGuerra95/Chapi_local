@@ -27,10 +27,16 @@ async def init_models() -> None:
 
     La API y el worker arrancan a la vez; ``create_all`` (check-then-create) no es
     atómico entre conexiones, por lo que se ignora la carrera de creación concurrente.
+
+    En producción se recomienda ``AUTO_CREATE_TABLES=false`` y gestionar el esquema
+    con Alembic (T-221).
     """
     from sqlalchemy.exc import IntegrityError, ProgrammingError
 
     from app import models  # noqa: F401  (asegura registro de modelos en Base)
+
+    if not settings.auto_create_tables:
+        return
 
     try:
         async with engine.begin() as conn:

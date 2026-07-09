@@ -123,7 +123,7 @@
 
 ### F2.C · Identidad, datos y migraciones
 - [ ] 🔒 **T-220** Autenticación/autorización de usuarios internos (reemplaza DD-05).
-- [ ] 🔒 **T-221** Migraciones con **Alembic** (reemplaza `create_all`, DD-06).
+- [x] 🔒 **T-221** Migraciones con **Alembic** (async env.py + `alembic.ini` + migración inicial `6cb55646f788`). `create_all` sigue de default en dev/tests; en prod `AUTO_CREATE_TABLES=false` + `alembic upgrade head`. Verificado: autogenerate + upgrade/downgrade round-trip contra Postgres real.
 - [ ] 🔒 **T-222** **Desambiguación de homónimos por RUT hecha** (RC-04): `rut_utils` normaliza RUT y, si el sujeto tiene RUT y una causa lo lista entre sus litigantes, el worker desmarca `possible_homonym` (+7 tests). **Pendiente**: consulta por RUT como *input* de búsqueda (flujo distinto en la OJV).
 - [ ] 🔒 **T-223** Consulta de **empresas** (razón social/RUT) (RD-01).
 

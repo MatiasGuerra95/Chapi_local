@@ -52,7 +52,7 @@ Request flow (`backend/app/routers/consultas.py` → `workers/judicial_worker.py
 
 Scraper is the key extension point (`backend/app/services/pjud_scraper.py`): `PjudScraper` is a `Protocol` whose `scan_persona(...)` is an **async generator of `CaseRecord` (a pure producer — it does not persist)**. `get_scraper()` returns `MockPjudScraper` or `PlaywrightPjudScraper` based on `USE_MOCK_SCRAPER`. The worker consumes the generator identically for either, so swapping mock→real touches neither the API nor the worker. Playwright is imported lazily so the mock path needs no browser. The real scraper is a skeleton ported from the reference scripts `crawler_nom.py` / `detalle.py` (at repo root); OJV competencia codes **Laboral=4 and Penal=5 are confirmed; Civil and Cobranza are placeholders that must be verified against the live DOM** (`COMPETENCIAS` in `backend/app/config.py`).
 
-Persistence: `backend/app/db.py` creates tables via `Base.metadata.create_all` on startup (**no Alembic yet** — schema changes are just model edits in `backend/app/models.py`). Models: `Subject 1─* Consulta 1─* CaseResult`, plus append-only `AuditLog` and `Report`; `Consulta.id` is a UUID and variable fields use JSONB.
+Persistence: `backend/app/db.py` creates tables via `Base.metadata.create_all` on startup by default (`AUTO_CREATE_TABLES=true`, used in dev/tests). **Alembic exists** (T-221) for production: set `AUTO_CREATE_TABLES=false` and run `alembic upgrade head` (config in `alembic.ini`, async `migrations/env.py`, initial migration under `migrations/versions/`). Models: `Subject 1─* Consulta 1─* CaseResult`, plus append-only `AuditLog` and `Report`; `Consulta.id` is a UUID and variable fields use JSONB.
 
 ## Compliance invariants (do not regress)
 
