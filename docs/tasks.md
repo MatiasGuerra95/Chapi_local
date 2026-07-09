@@ -10,10 +10,11 @@
 - ⚠️ **Decisión/riesgo** — requiere una definición antes o durante la ejecución (ver §Decisiones abiertas).
 - 🔒 **Fase 2** — fuera del MVP.
 
-## Estado (snapshot)
-- **Núcleo del MVP (código): implementado.** API, worker, servicios, modelos, infra y tests unitarios están construidos.
-- **Falta para "MVP terminado":** verificación end‑to‑end con Postgres+Redis reales, tests de integración, versionar la documentación y merge del PR.
-- **Bloqueo conocido en el entorno de desarrollo:** el daemon de Docker está caído y no hay Postgres/Redis locales → T-85 pendiente de ejecutar.
+## Estado (snapshot) — 2026-07-09
+- **MVP** mergeado a `main` y **M10** (compliance operativo) cerrado.
+- **Fase 2**: **F2.B/C/D completas**; **F2.A** (scraper real) con código + infra listos, **pendiente la corrida en vivo** contra la OJV (`T-200`/`T-203`/`T-205`).
+- **Pendientes que dependen de terceros** (no codeables): `T-05` sign-off de stakeholders (RRHH/legal); `T-200`/`T-203`/`T-205` y el residuo de `T-222` (consulta por RUT como input) requieren el sitio en vivo de la OJV.
+- Tests: **87 passed / 3 skipped** (las 3 integraciones corren en CI con Postgres).
 
 ---
 
@@ -37,13 +38,13 @@
 - [x] **T-20** Modelos SQLAlchemy: `Subject`, `Consulta`, `CaseResult`, `AuditLog`, `Report` (RD-01…RD-05).
 - [x] **T-21** JSONB para `params`/`litigantes`/`relaciones` (RD-06).
 - [x] **T-22** Índices para acceso frecuente: `case_results.consulta_id`, `consultas.created_at`, `audit_logs.consulta_id` (`index=True` en modelos; se crean vía `create_all`) (rendimiento).
-- [ ] **T-23** Resolver colisión del JSON por persona: `results/{slug}.json` se **sobrescribe** al re-consultar a la misma persona → decidir namespacing por `consulta_id`/timestamp o versionado (RF-05, RNF-10). ⚠️
+- [x] **T-23** Colisión del JSON resuelta: se namespacea por `consulta_id` (`results/{slug}__{consulta_id}.json`), evitando la sobrescritura al re-consultar a la misma persona (RF-05, RNF-10).
 
 ## M3 · Schemas y validación (compliance de entrada)
 - [x] **T-30** Schemas Pydantic (Subject/Consulta/CaseResult/Audit; in/out).
 - [x] **T-31** Gating de `motivo` obligatorio y no trivial (RC-01, RC-02).
 - [x] **T-32** Validar competencias soportadas y rango de años (RF-02).
-- [ ] **T-33** Normalizar entrada de nombre/apellidos (mayúsculas/acentos) para el scraper real (RNF-08).
+- [x] **T-33** Normalización de entrada (`text_utils.normalize_name`: trim + colapso de espacios + mayúsculas, conserva ñ/tildes) aplicada en el scraper real antes de llenar los campos (RNF-08) + tests.
 
 ## M4 · API (routers)
 - [x] **T-40** `GET /health` (RF-13).
@@ -51,7 +52,7 @@
 - [x] **T-42** `GET /consultas` y `GET /consultas/{id}` con causas/conteos (RF-09, RF-10).
 - [x] **T-43** `GET /consultas/{id}/report` (HTML) (RF-08).
 - [x] **T-44** `GET /audit` con filtro por consulta (RF-12).
-- [ ] **T-45** Paginación/límite en listados de consultas y auditoría (escalabilidad).
+- [x] **T-45** Paginación en `GET /consultas` y `GET /audit` (`limit` 1–200 default 50, `offset`) (escalabilidad) + aserción en integración.
 - [x] **T-46** Readiness check `GET /health/ready` que verifica DB (`SELECT 1`) y Redis (`arq_pool.ping()`): 200 si ambos ok, 503 con detalle por componente (RNF-07).
 
 ## M5 · Servicios
@@ -68,15 +69,15 @@
 - [x] **T-62** Persistencia normalizada de causas (RF-06).
 - [x] **T-63** Cálculo de score y cierre de la consulta (RF-07).
 - [x] **T-64** Manejo de errores → estado `error` + auditoría (RNF-07).
-- [ ] **T-65** `job_timeout` de arq **hecho** (`ARQ_JOB_TIMEOUT_SECONDS`, default 1800 s, en `WorkerSettings`); falta afinar la política de **reintentos** (`max_tries`) acorde a politeness (RNF-03). ⚠️
-- [ ] **T-66** Commit incremental/por lotes de `CaseResult` (hoy es una transacción única para todo el scrape; con el scraper real será enorme y de larga duración) (RF-06). ⚠️
+- [x] **T-65** `job_timeout` (`ARQ_JOB_TIMEOUT_SECONDS`, 1800 s) y **reintentos** (`ARQ_MAX_TRIES`, default 3, acotados por politeness) en `WorkerSettings` (RNF-03).
+- [x] **T-66** Commit por lotes de `CaseResult` durante el scrape (`WORKER_COMMIT_BATCH`, default 50; 0 = sólo al final) para persistir progreso incremental en scrapes largos (RF-06).
 
 ## M7 · Infraestructura
 - [x] **T-70** `docker-compose.yml` (api, worker, db, redis) con health checks (RNF-04).
 - [x] **T-71** `infra/Dockerfile` (imagen compartida api/worker + Playwright chromium).
 - [x] **T-72** `requirements.txt` (MVP) + `requirements-ml.txt` (fase 2) (DD-03).
 - [x] **T-73** Imagen sin Chromium por defecto: instalación opt-in con `--build-arg INSTALL_BROWSERS=true` (fase 2). *(infra/Dockerfile)*
-- [ ] **T-74** Definir persistencia/backup de Postgres y ciclo del volumen `dbdata` (operación).
+- [x] **T-74** Persistencia/backup de Postgres y ciclo del volumen `dbdata` documentados (`docs/operations/postgres-backup.md`: pg_dump/restore, retención de backups, migraciones Alembic, checklist). Programación del cron y cifrado quedan a operación.
 
 ## M8 · Calidad, pruebas y verificación E2E
 - [x] **T-80** Lint `ruff` en CI (RNF-09).
@@ -86,7 +87,7 @@
 - [x] **T-84** Cobertura de `run_consulta` incluida en el test de integración (worker invocado directamente, sin Redis).
 - [x] **T-85** **Verificación E2E app-level** contra **Postgres local** (mock scraper + worker directo, sin Redis): 422 sin motivo, `done` con causas/score, JSON en tiempo real, informe con disclaimer/homónimos, auditoría completa (CA-01/02/03/04/05 · RC-03/RC-04). *(script: `scratchpad/verify_e2e.py`)*
 - [x] **T-88** Smoke del **stack completo** con `docker compose` (API+worker+Postgres+Redis): CA-06 ✅ + cola real Redis/arq + CA-01..05/RC-04. *(script: `scratchpad/smoke_docker.py`)* Detectó y corrigió: carrera de `create_all` API↔worker (`db.py`) y Dockerfile en Debian trixie (`libgl1-mesa-glx`→`libgl1`).
-- [ ] **T-86** Script de smoke test / demo (crear consulta → esperar `done` → abrir informe).
+- [x] **T-86** Script de smoke/demo (`scripts/demo.py`): crea una consulta → hace polling hasta `done` → imprime enlaces al informe/PDF/UI. Sólo stdlib, corre desde el host contra la API.
 - [x] **T-87** Test RC-03/RC-04 del informe (`tests/test_report.py`): indicadores sin lenguaje prohibido + disclaimer que lo niega + marca de homónimo. (Confirmado: no basta "ausencia de palabras"; el disclaimer las menciona para negarlas.)
 
 ## M9 · Entrega
@@ -135,12 +136,13 @@
     
 ---
 
-## Decisiones abiertas (bloquean o condicionan tareas)
-1. **JSON por persona vs por consulta** (T-23): ¿se acepta la sobrescritura de `results/{slug}.json` o se versiona por consulta? Afecta RF-05/RNF-10.
-2. **Legalidad del scraping** (T-100): confirmar base de licitud y ToS del PJUD antes de activar el scraper real (T-200+).
-3. **Retención de datos** (T-101): definir plazos de conservación/borrado de datos personales.
-4. **Transaccionalidad del worker** (T-66) y **timeouts** (T-65): estrategia para scrapes largos del scraper real.
-5. **Alcance de la verificación E2E** (T-85): ¿se ejecuta localmente (requiere levantar Docker) o en CI con servicios de Postgres/Redis?
+## Decisiones abiertas — resueltas
+1. ✅ **JSON por persona** (T-23): namespacing por `consulta_id`.
+2. ✅ **Legalidad del scraping** (T-100): base y ToS confirmados (2026-07-09); gate levantado.
+3. ✅ **Retención de datos** (T-101): política aprobada.
+4. ✅ **Transaccionalidad/timeouts del worker** (T-65/T-66): `job_timeout`+`max_tries`+commit por lotes.
+5. ✅ **Alcance de la verificación E2E** (T-85/T-88): app-level + smoke docker; integraciones en CI con Postgres.
 
-## Sugerencia de orden (próximos pasos del MVP)
-1. **T-04/T-93** versionar docs → 2. **T-85** verificación E2E (levantar Docker) → 3. **T-83/T-84/T-87** tests de integración → 4. **T-92/T-94** CI verde + merge → 5. luego M10 (compliance operativo) antes de abrir Fase 2.
+## Pendientes que dependen de terceros (no codeables)
+- **T-05** — sign-off de RRHH/legal sobre requisitos.
+- **T-200 / T-203 / T-205** y residuo de **T-222** — requieren el sitio en vivo de la OJV; infra y runbook listos (`scripts/README-live-validation.md`).

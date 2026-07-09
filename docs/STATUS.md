@@ -6,12 +6,13 @@ _Última actualización: 2026-07-09 · rama `main` · MVP mergeado (squash `de7c
 > Backlog completo con checkboxes en [`tasks.md`](./tasks.md).
 
 ## ¿Dónde nos quedamos?
-**M10 cerrado**; Fase 2 **F2.B/C/D completas** en `main` (F2.A: falta la corrida en vivo). Recién: **store pgvector persistente** (`T-211`): `app/vectorstore.py` (OPT-IN `ENABLE_PGVECTOR`, metadata propio), el worker indexa embeddings al terminar y `GET /search/similar` busca entre consultas. Verificado E2E contra `pgvector/pgvector:pg16`. El path por defecto no importa pgvector. Verificado: ruff ✅ + pytest **81 passed / 3 skipped**.
+**Todo el backlog codeable está cerrado.** MVP + M10 + Fase 2 **F2.B/C/D** completas; **F2.A** con código+infra listos (falta la corrida en vivo). Última tanda (limpieza de `tasks.md`): `T-23` namespacing JSON, `T-33` normalización de nombre, `T-45` paginación, `T-65` reintentos arq, `T-66` commit por lotes, `T-74` doc backup, `T-86` script demo. Verificado: ruff ✅ + pytest **87 passed / 3 skipped** (3 integraciones contra Postgres real). **Sólo quedan pendientes las tareas que dependen de terceros** (ver abajo).
 
-## Ahora / próximo
-- **F2.B/C/D completas.** Único pendiente de Fase 2: la **corrida en vivo** del scraper (F2.A: `T-200/203/205`, la corres tú).
-- **pgvector (opt-in):** `docker compose -f docker-compose.yml -f docker-compose.pgvector.yml up --build` (imagen con ML stack: `INSTALL_BROWSERS`/pgvector); luego `GET /search/similar?q=`.
-- **Corrida en vivo (tú)** con `scripts/README-live-validation.md`: `inspect_ojv.py` → `T-200`; `validate_live.py` → `T-205`.
+## Ahora / próximo — sólo pendientes que dependen de ti/terceros
+- **T-05** — sign-off de RRHH/legal sobre requisitos (no codeable).
+- **T-200/T-203/T-205** + residuo de **T-222** — requieren el **sitio en vivo** de la OJV. Todo listo: `scripts/README-live-validation.md` (`inspect_ojv.py` → `T-200`; `validate_live.py` → `T-205`).
+- Demo local rápida: `docker compose up -d` → `python scripts/demo.py`.
+- pgvector opt-in: `docker compose -f docker-compose.yml -f docker-compose.pgvector.yml up --build` → `GET /search/similar?q=`.
 - UI en `GET /ui`; métricas en `GET /metrics`; PDF en `GET /consultas/{id}/report.pdf` (requiere imagen con `INSTALL_BROWSERS=true`).
 - Para activar auth: `AUTH_ENABLED=true` + `JWT_SECRET` (≥32B) + `scripts/create_user.py`.
 - ⚠️ `.gitignore` local mantiene `/docs` — nuevos docs con `git add -f`.
@@ -28,8 +29,9 @@ _Última actualización: 2026-07-09 · rama `main` · MVP mergeado (squash `de7c
 - `T-104`/`T-65`/`T-66` se difieren para acompañar el scraper real (Fase 2), donde tienen efecto real.
 
 ## Últimas tareas completadas
+- **Cierre de backlog codeable**: `T-23` JSON namespacing, `T-33` normalización nombre, `T-45` paginación, `T-65` reintentos, `T-66` commit por lotes, `T-74` doc backup, `T-86` script demo (+6 tests)
 - `T-211` **store pgvector persistente** (`vectorstore.py` opt-in, worker indexa, `GET /search/similar`), verificado E2E contra `pgvector/pgvector:pg16`
-- **F2.D completa**: `T-230` UI mínima, `T-231` export PDF (Playwright, PDF real verificado), `T-232` `/metrics` Prometheus, `T-233` evaluación de fuentes
+- **F2.D completa**: `T-230` UI, `T-231` PDF, `T-232` `/metrics`, `T-233` evaluación de fuentes
 - `T-220`/`T-221`/`T-222`/`T-223` **F2.C** (auth JWT+RBAC, Alembic, homónimos por RUT, empresas), verificadas contra Postgres real
 - `T-220` **auth de usuarios** (User + pbkdf2 + JWT + RBAC + migración `b7decc69951e`), verificado E2E contra Postgres real
 - `T-221` **Alembic** + `T-222` **homónimos por RUT** (verificados contra Postgres real)

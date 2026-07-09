@@ -59,11 +59,17 @@ async def crear_consulta(
 
 
 @router.get("", response_model=list[schemas.ConsultaOut])
-async def listar_consultas(session: AsyncSession = Depends(get_session)):
+async def listar_consultas(
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    session: AsyncSession = Depends(get_session),
+):
     stmt = (
         select(models.Consulta)
         .options(selectinload(models.Consulta.subject))
         .order_by(models.Consulta.created_at.desc())
+        .limit(limit)
+        .offset(offset)
     )
     result = await session.execute(stmt)
     return result.scalars().all()

@@ -49,7 +49,9 @@ async def run_consulta(ctx, consulta_id: str):
         slug = persona_slug(subject.nombre, subject.ape_paterno, subject.ape_materno)
         results_dir = Path(settings.results_dir)
         results_dir.mkdir(parents=True, exist_ok=True)
-        json_path = results_dir / f"{slug}.json"
+        # T-23/RNF-10: namespacing por consulta_id para no sobrescribir el JSON al
+        # re-consultar a la misma persona (el slug se conserva por legibilidad).
+        json_path = results_dir / f"{slug}__{consulta_id}.json"
 
         consulta.status = "running"
         consulta.started_at = datetime.utcnow()
@@ -111,6 +113,12 @@ async def run_consulta(ctx, consulta_id: str):
                     )
                     await session.flush()
                     records.append(rec)
+
+                    # T-66: commit por lotes para scrapes largos (persiste progreso
+                    # incremental en vez de una única transacción gigante al final).
+                    batch = settings.worker_commit_batch
+                    if batch and len(records) % batch == 0:
+                        await session.commit()
                 jf.write("\n]\n")
 
             risk = risk_engine.compute_score(records)
@@ -193,5 +201,7 @@ class WorkerSettings:
     redis_settings = RedisSettings.from_dsn(settings.redis_url)
     on_startup = _startup
     # El scraper real puede tardar (muchos tribunales × años); evita que arq
-    # mate el job a los 300 s por defecto (part. de T-65).
+    # mate el job a los 300 s por defecto (T-65).
     job_timeout = settings.arq_job_timeout_seconds
+    # Reintentos acotados (politeness hacia la fuente): pocos para no golpearla (T-65).
+    max_tries = settings.arq_max_tries

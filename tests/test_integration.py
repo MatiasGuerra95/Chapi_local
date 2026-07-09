@@ -71,6 +71,10 @@ def test_flujo_completo_api_worker():
             assert {"consulta_creada", "consulta_iniciada",
                     "consulta_finalizada", "informe_generado"} <= actions
 
+            # T-45: paginación (limit acota el número de filas)
+            assert len((await c.get("/consultas?limit=1")).json()) <= 1
+            assert len((await c.get(f"/audit?consulta_id={cid}&limit=2")).json()) <= 2
+
         await engine.dispose()
 
     asyncio.run(flow())

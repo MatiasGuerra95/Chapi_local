@@ -12,6 +12,7 @@ import re
 from typing import AsyncIterator, Protocol, TypedDict, runtime_checkable
 
 from app.config import COMPETENCIA_SUFIJO, COMPETENCIAS, settings
+from app.services.text_utils import normalize_name
 from app.services.throttle import RateLimiter, retry_async
 
 
@@ -242,6 +243,11 @@ class PlaywrightPjudScraper:
         year_to: int,
     ) -> AsyncIterator[CaseRecord]:
         from playwright.async_api import async_playwright  # import perezoso
+
+        # T-33/RNF-08: normaliza la entrada (espacios/mayúsculas) para la OJV.
+        nombre = normalize_name(nombre)
+        ape_paterno = normalize_name(ape_paterno)
+        ape_materno = normalize_name(ape_materno)
 
         async with async_playwright() as p:
             # --no-sandbox / --disable-dev-shm-usage: necesarios para chromium

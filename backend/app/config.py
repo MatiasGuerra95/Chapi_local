@@ -45,8 +45,12 @@ class Settings(BaseSettings):
     scraper_detail_timeout_ms: int = 10000
     scraper_headless: bool = True
 
-    # arq: el scraper real es lento; sube el timeout del job (part. de T-65).
+    # arq: el scraper real es lento; sube el timeout del job (T-65).
     arq_job_timeout_seconds: int = 1800
+    # Reintentos de arq acordes a politeness (pocos para no golpear la fuente) (T-65).
+    arq_max_tries: int = 3
+    # Commit por lotes de causas durante scrapes largos (T-66). 0 = sólo al final.
+    worker_commit_batch: int = 50
 
     # NLP (T-210). Mock (rule-based) por defecto; llama-cpp real es opt-in (fase 2).
     use_mock_nlp: bool = True
