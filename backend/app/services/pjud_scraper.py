@@ -12,6 +12,7 @@ import re
 from typing import AsyncIterator, Protocol, TypedDict, runtime_checkable
 
 from app.config import COMPETENCIAS, settings
+from app.services.throttle import RateLimiter
 
 
 class CaseRecord(TypedDict, total=False):
@@ -199,6 +200,10 @@ class PlaywrightPjudScraper:
 
     def __init__(self, debug: bool = False):
         self.debug = debug
+        # Politeness hacia la OJV (T-104): intervalo mínimo + jitter entre búsquedas.
+        self._limiter = RateLimiter(
+            settings.scraper_min_delay_seconds, settings.scraper_jitter_seconds
+        )
 
     async def scan_persona(
         self,
@@ -239,6 +244,8 @@ class PlaywrightPjudScraper:
 
                     for yr in range(year_from, year_to + 1):
                         await page.fill("#nomEra", str(yr))
+                        # Politeness: respeta el intervalo mínimo antes de cada búsqueda.
+                        await self._limiter.acquire()
                         await page.click("#btnConConsultaNom")
                         if not await _wait_tabla(page):
                             continue

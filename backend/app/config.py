@@ -21,6 +21,13 @@ class Settings(BaseSettings):
     use_mock_scraper: bool = True
     results_dir: str = "results"
 
+    # Politeness/rate limiting hacia la fuente (T-104). Efectivo con el scraper
+    # real (fase 2): intervalo mínimo entre peticiones + jitter y reintentos.
+    scraper_min_delay_seconds: float = 1.0
+    scraper_jitter_seconds: float = 0.5
+    scraper_max_retries: int = 3
+    scraper_backoff_base_seconds: float = 1.0
+
     # Rango de años por defecto (configurable por consulta)
     default_year_from: int = 2018
     default_year_to: int = 2024

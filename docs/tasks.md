@@ -101,7 +101,7 @@
 - [ ] **T-101** Política de **retención y eliminación** de datos personales (Ley 19.628 / Ley 21.719): plazos, borrado, propósito limitado.
 - [x] **T-102** Control de acceso mínimo por API key (activable con `API_KEY`; abierto en dev/MVP) en endpoints de negocio (consultas/audit); health/readiness abiertos. Minimización: las respuestas no exponen rutas de FS ni secretos. Auth por usuario/RBAC → fase 2 (T-220). *(`app/security.py`)*
 - [x] **T-103** Logging estructurado JSON con correlación (`request_id` en API vía middleware + header `X-Request-ID`; `job_id` de arq en el worker) para trazabilidad técnica. *(`app/logging_config.py`)*
-- [ ] **T-104** Rate limiting y "politeness" hacia la fuente (throttling/backoff) — prerequisito del scraper real.
+- [x] **T-104** Politeness/rate limiting hacia la fuente: `RateLimiter` (intervalo mínimo + jitter) y `retry_async` (backoff exponencial) en `app/services/throttle.py`, configurables (`SCRAPER_*`) y cableados en el skeleton Playwright (antes de cada búsqueda). Efectivo al activar el scraper real (fase 2).
 - [x] **T-105** Reforzar evidencia de propósito: validación de `motivo` endurecida (rechaza triviales/repetitivos/símbolos/una-palabra, no sólo por longitud) + auditoría de `consulta_creada` enriquecida con `principal` y `request_id` (RC-01, RC-05).
 
 ---
