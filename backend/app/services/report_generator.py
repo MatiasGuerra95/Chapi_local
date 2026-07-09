@@ -7,6 +7,7 @@ from pathlib import Path
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from app.config import settings
+from app.services import nlp_service
 
 _TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 _env = Environment(
@@ -23,6 +24,7 @@ def render_report(*, consulta, subject, cases, risk: dict) -> str:
         subject=subject,
         cases=cases,
         risk=risk,
+        summary=nlp_service.generate_summary(cases, risk),
         fuente=settings.fuente,
         generated_at=datetime.utcnow(),
     )

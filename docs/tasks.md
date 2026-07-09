@@ -117,7 +117,7 @@
 - [ ] 🔒 **T-205** Activar por config (`USE_MOCK_SCRAPER=false`) y validar contra un entorno de prueba. **Infra lista**: overlay `docker-compose.live.yml` (worker con Chromium), `scripts/inspect_ojv.py` (T-200), `scripts/validate_live.py` y runbook `scripts/README-live-validation.md`. Chromium con `--no-sandbox`, `job_timeout` subido. ⚠️ falta la corrida en vivo (la ejecutas tú).
 
 ### F2.B · LLM y búsqueda semántica
-- [ ] 🔒 **T-210** Integrar resumen de fallos con llama-cpp en `nlp_service` (instalar `requirements-ml.txt`).
+- [x] 🔒 **T-210** `nlp_service` con síntesis narrativa: `MockSummarizer` rule-based (default MVP, compliant RC-03) + skeleton `LlamaCppSummarizer` (lazy, opt-in `USE_MOCK_NLP=false`); cableado en el informe (+6 tests). Reemplaza el stub inicial.
 - [ ] 🔒 **T-211** Embeddings + pgvector — requiere **imagen Postgres con la extensión pgvector** (postgres:16 no la trae). ⚠️
 - [ ] 🔒 **T-212** Endpoint/consulta semántica sobre causas.
 

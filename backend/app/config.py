@@ -37,6 +37,12 @@ class Settings(BaseSettings):
     # arq: el scraper real es lento; sube el timeout del job (part. de T-65).
     arq_job_timeout_seconds: int = 1800
 
+    # NLP (T-210). Mock (rule-based) por defecto; llama-cpp real es opt-in (fase 2).
+    use_mock_nlp: bool = True
+    enable_summary: bool = True
+    llama_model_path: str = "./models/llama-q4.gguf"
+    llama_n_ctx: int = 4096
+
     # Rango de años por defecto (configurable por consulta)
     default_year_from: int = 2018
     default_year_to: int = 2024

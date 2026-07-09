@@ -63,6 +63,9 @@
   </div>
 
   <h2>Resumen ejecutivo</h2>
+  {% if summary %}
+  <p><b>Síntesis (generada automáticamente, requiere validación humana):</b> {{ summary }}</p>
+  {% endif %}
   <p>
     Nivel de riesgo:
     <span class="score {{ risk.level }}">{{ risk.level | upper }} ({{ risk.score }})</span>
