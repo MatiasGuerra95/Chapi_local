@@ -14,3 +14,6 @@ __pycache__/
 # Salida en runtime (JSON por persona + informes)
 results/*
 !results/.gitkeep
+
+
+/docs
